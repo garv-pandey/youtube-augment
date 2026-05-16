@@ -2,7 +2,7 @@ import shutil
 import platform
 import yt_dlp
 from pathlib import Path
-from ytmm.exceptions import SystemRequirementError, YTMMError
+from ytaug.exceptions import SystemRequirementError, YTAugError
 
 
 def check_ffmpeg() -> bool:
@@ -66,4 +66,4 @@ def download_playlist(playlist_url: str, target_path: Path, js_runtimes: dict) -
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([playlist_url])
     except Exception as e:
-        raise YTMMError("Error in download_playlist") from e
+        raise YTAugError("Error in download_playlist") from e

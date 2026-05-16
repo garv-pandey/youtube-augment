@@ -27,4 +27,4 @@ dev = ["pytest>=8.0"]
 testpaths = ["tests"]
 
 [project.scripts]
-ytmm = "ytmm.main:app"
+ytaug = "ytaug.main:app"

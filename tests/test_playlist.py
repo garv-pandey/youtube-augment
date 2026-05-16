@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import patch
 
-from ytmm.exceptions import YTMMError
-from ytmm.playlist import (
+from ytaug.exceptions import YTAugError
+from ytaug.playlist import (
     extract_playlist_id,
     get_playlist_info_dlp,
     get_video_ids,
@@ -102,20 +102,20 @@ class TestExtractPlaylistId:
     def test_none_youtube_domain_with_list_param(self):
         assert extract_playlist_id("https://vimeo.com/video?list=abc123") == "abc123"
 
-    def test_no_list_param_raises_ytmmerror(self):
-        with pytest.raises(YTMMError):
+    def test_no_list_param_raises_ytaugerror(self):
+        with pytest.raises(YTAugError):
             extract_playlist_id("https://www.youtube.com/watch?v=abc")
 
-    def test_no_query_params_raises_ytmmerror(self):
-        with pytest.raises(YTMMError):
+    def test_no_query_params_raises_ytaugerror(self):
+        with pytest.raises(YTAugError):
             extract_playlist_id("https://www.youtube.com/playlist")
 
-    def test_empty_string_raises_ytmmerror(self):
-        with pytest.raises(YTMMError):
+    def test_empty_string_raises_ytaugerror(self):
+        with pytest.raises(YTAugError):
             extract_playlist_id("")
 
-    def test_root_url_raises_ytmmerror(self):
-        with pytest.raises(YTMMError):
+    def test_root_url_raises_ytaugerror(self):
+        with pytest.raises(YTAugError):
             extract_playlist_id("https://www.youtube.com/")
 
 
@@ -136,7 +136,7 @@ class TestGetPlaylistInfoDlp:
     """get_playlist_info_dlp() — fetches playlist metadata via yt-dlp."""
 
     def test_standard_playlist(self):
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.return_value = (
                 BASE_INFO
             )
@@ -163,7 +163,7 @@ class TestGetPlaylistInfoDlp:
             "entries": [{"id": "vid1"}],
             "_type": "playlist",
         }
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.return_value = (
                 info
             )
@@ -183,7 +183,7 @@ class TestGetPlaylistInfoDlp:
             "entries": [{"id": f"vid{i}"} for i in range(5)],
             "_type": "playlist",
         }
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.return_value = (
                 info
             )
@@ -198,7 +198,7 @@ class TestGetPlaylistInfoDlp:
         info = dict(BASE_INFO)
         info["playlist_count"] = 10
         info["entries"] = [{"id": f"vid{i}"} for i in range(3)]
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.return_value = (
                 info
             )
@@ -209,45 +209,45 @@ class TestGetPlaylistInfoDlp:
 
         assert result["video_count"] == 10
 
-    def test_private_playlist_raises_ytmmerror(self):
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+    def test_private_playlist_raises_ytaugerror(self):
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.side_effect = (
                 Exception("This playlist is private")
             )
 
-            with pytest.raises(YTMMError, match="Provided playlist is private"):
+            with pytest.raises(YTAugError, match="Provided playlist is private"):
                 get_playlist_info_dlp(
                     "https://youtube.com/playlist?list=PL_abc", JS_RUNTIME
                 )
 
-    def test_other_ytdlp_error_raises_ytmmerror(self):
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+    def test_other_ytdlp_error_raises_ytaugerror(self):
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.side_effect = (
                 Exception("Network error")
             )
 
-            with pytest.raises(YTMMError, match="Error in get_playlist_info_dlp"):
+            with pytest.raises(YTAugError, match="Error in get_playlist_info_dlp"):
                 get_playlist_info_dlp(
                     "https://youtube.com/playlist?list=PL_abc", JS_RUNTIME
                 )
 
-    def test_not_a_playlist_raises_ytmmerror(self):
+    def test_not_a_playlist_raises_ytaugerror(self):
         info = dict(BASE_INFO)
         info["_type"] = "video"
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.return_value = (
                 info
             )
 
             with pytest.raises(
-                YTMMError, match="Provided URL is not a youtube palylist"
+                YTAugError, match="Provided URL is not a youtube palylist"
             ):
                 get_playlist_info_dlp("https://youtube.com/watch?v=abc", JS_RUNTIME)
 
-    def test_youtubedl_constructor_fails_raises_ytmmerror(self):
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl_cls:
+    def test_youtubedl_constructor_fails_raises_ytaugerror(self):
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl_cls:
             mock_ydl_cls.side_effect = Exception("Init error")
-            with pytest.raises(YTMMError, match="Error in get_playlist_info_dlp"):
+            with pytest.raises(YTAugError, match="Error in get_playlist_info_dlp"):
                 get_playlist_info_dlp(
                     "https://youtube.com/playlist?list=PL_abc", JS_RUNTIME
                 )
@@ -258,7 +258,7 @@ class TestGetVideoIds:
 
     def test_multiple_entries(self):
         result = {"entries": [{"id": "vid1"}, {"id": "vid2"}, {"id": "vid3"}]}
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.return_value = (
                 result
             )
@@ -269,7 +269,7 @@ class TestGetVideoIds:
 
     def test_single_entry(self):
         result = {"entries": [{"id": "vid1"}]}
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.return_value = (
                 result
             )
@@ -280,7 +280,7 @@ class TestGetVideoIds:
 
     def test_no_entries_key(self):
         result = {"id": "PL_abc", "title": "Empty"}
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.return_value = (
                 result
             )
@@ -291,7 +291,7 @@ class TestGetVideoIds:
 
     def test_entries_contain_none(self):
         result = {"entries": [{"id": "vid1"}, None, {"id": "vid3"}]}
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.return_value = (
                 result
             )
@@ -302,7 +302,7 @@ class TestGetVideoIds:
 
     def test_entries_missing_id(self):
         result = {"entries": [{"id": "vid1"}, {"foo": "bar"}, {"id": "vid3"}]}
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.return_value = (
                 result
             )
@@ -313,7 +313,7 @@ class TestGetVideoIds:
 
     def test_all_entries_invalid(self):
         result = {"entries": [None, {"foo": "bar"}, None]}
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.return_value = (
                 result
             )
@@ -322,11 +322,11 @@ class TestGetVideoIds:
 
         assert ids == []
 
-    def test_extract_info_error_raises_ytmmerror(self):
-        with patch("ytmm.playlist.yt_dlp.YoutubeDL") as mock_ydl:
+    def test_extract_info_error_raises_ytaugerror(self):
+        with patch("ytaug.playlist.yt_dlp.YoutubeDL") as mock_ydl:
             mock_ydl.return_value.__enter__.return_value.extract_info.side_effect = (
                 Exception("Network error")
             )
 
-            with pytest.raises(YTMMError, match="Error in get_vidoe_ids"):
+            with pytest.raises(YTAugError, match="Error in get_vidoe_ids"):
                 get_video_ids("https://youtube.com/playlist?list=PL_abc")

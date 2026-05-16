@@ -1,8 +1,9 @@
 import json
 import pytest
 from unittest.mock import MagicMock, PropertyMock, patch
-from ytmm.exceptions import YTMMError
-from ytmm.auth import (
+
+from ytaug.exceptions import YTAugError
+from ytaug.auth import (
     check_client_secret,
     copy_client_secret,
     check_tokens,
@@ -112,11 +113,11 @@ class TestCopyClientSecret:
         assert dest.exists()
 
     def test_source_not_found(self, tmp_path):
-        """Raises YTMMError when source file does not exist."""
+        """Raises YTAugError when source file does not exist."""
         nonexistent = tmp_path / "nope.json"
         dest = tmp_path / "dest.json"
 
-        with pytest.raises(YTMMError):
+        with pytest.raises(YTAugError):
             copy_client_secret(nonexistent, dest)
 
     def test_source_file_unchanged_after_copy(self, tmp_path):
@@ -144,10 +145,10 @@ class TestCheckTokens:
         path.write_text("{}")
 
         with patch(
-            "ytmm.auth.Credentials.from_authorized_user_file",
+            "ytaug.auth.Credentials.from_authorized_user_file",
             side_effect=ValueError("bad file"),
         ):
-            with patch("ytmm.auth.Request"):
+            with patch("ytaug.auth.Request"):
                 result = check_tokens(tokens_path=path)
 
         assert result is False
@@ -158,9 +159,9 @@ class TestCheckTokens:
         path.write_text("{}")
 
         with patch(
-            "ytmm.auth.Credentials.from_authorized_user_file", return_value=None
+            "ytaug.auth.Credentials.from_authorized_user_file", return_value=None
         ):
-            with patch("ytmm.auth.Request"):
+            with patch("ytaug.auth.Request"):
                 result = check_tokens(tokens_path=path)
 
         assert result is False
@@ -174,10 +175,10 @@ class TestCheckTokens:
         mock_creds.valid = True
 
         with patch(
-            "ytmm.auth.Credentials.from_authorized_user_file",
+            "ytaug.auth.Credentials.from_authorized_user_file",
             return_value=mock_creds,
         ):
-            with patch("ytmm.auth.Request"):
+            with patch("ytaug.auth.Request"):
                 result = check_tokens(tokens_path=path)
 
         assert result is True
@@ -196,10 +197,10 @@ class TestCheckTokens:
         type(mock_creds).valid = PropertyMock(side_effect=[False, True])
 
         with patch(
-            "ytmm.auth.Credentials.from_authorized_user_file",
+            "ytaug.auth.Credentials.from_authorized_user_file",
             return_value=mock_creds,
         ):
-            with patch("ytmm.auth.Request"):
+            with patch("ytaug.auth.Request"):
                 result = check_tokens(tokens_path=path)
 
         assert result is True
@@ -218,10 +219,10 @@ class TestCheckTokens:
         mock_creds.refresh.side_effect = Exception("network error")
 
         with patch(
-            "ytmm.auth.Credentials.from_authorized_user_file",
+            "ytaug.auth.Credentials.from_authorized_user_file",
             return_value=mock_creds,
         ):
-            with patch("ytmm.auth.Request"):
+            with patch("ytaug.auth.Request"):
                 result = check_tokens(tokens_path=path)
 
         assert result is False
@@ -237,10 +238,10 @@ class TestCheckTokens:
         mock_creds.refresh_token = None
 
         with patch(
-            "ytmm.auth.Credentials.from_authorized_user_file",
+            "ytaug.auth.Credentials.from_authorized_user_file",
             return_value=mock_creds,
         ):
-            with patch("ytmm.auth.Request"):
+            with patch("ytaug.auth.Request"):
                 result = check_tokens(tokens_path=path)
 
         assert result is False
@@ -255,10 +256,10 @@ class TestCheckTokens:
         mock_creds.expired = False
 
         with patch(
-            "ytmm.auth.Credentials.from_authorized_user_file",
+            "ytaug.auth.Credentials.from_authorized_user_file",
             return_value=mock_creds,
         ):
-            with patch("ytmm.auth.Request"):
+            with patch("ytaug.auth.Request"):
                 result = check_tokens(tokens_path=path)
 
         assert result is False
@@ -368,13 +369,12 @@ class TestAuthLogout:
 
 # get_credentials() — no unit tests.
 #   Thin wrapper around Credentials.from_authorized_user_file.
-#   The error-handling pattern (catch → YTMMError) is identical to
+#   The error-handling pattern (catch → YTAugError) is identical to
 #   check_tokens (catch → False). No additional conditional logic
 #   worth isolating.
 
 # get_user_info() — no unit tests.
 #   Thin wrapper around AuthorizedSession + HTTP GET + raise_for_status.
 #   Same error-handling pattern as get_credentials. The logic is
-#   identical to authenticate: library call → return/catch → YTMMError.
+#   identical to authenticate: library call → return/catch → YTAugError.
 #   No branching, no data transformation, no business logic.
-

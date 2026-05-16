@@ -1,6 +1,6 @@
 import yt_dlp
 from urllib.parse import urlparse, parse_qs
-from ytmm.exceptions import YTMMError
+from ytaug.exceptions import YTAugError
 
 
 def is_youtube_playlist(url: str) -> bool:
@@ -43,7 +43,7 @@ def extract_playlist_id(url: str) -> str:
     playlist_id_list = query_params.get("list")
 
     if not playlist_id_list:
-        raise YTMMError(f"couldent extract playlist_id for: {url}")
+        raise YTAugError(f"couldent extract playlist_id for: {url}")
     # Return the first item if it exists, otherwise None
     return playlist_id_list[0]
 
@@ -65,9 +65,9 @@ def get_playlist_info_dlp(url: str, js_runtime_config: dict) -> dict:
             info = ydl.extract_info(url, download=False)
     except Exception as e:
         if "private" in str(e).lower():
-            raise YTMMError("Provided playlist is private") from e
+            raise YTAugError("Provided playlist is private") from e
 
-        raise YTMMError("Error in get_playlist_info_dlp") from e
+        raise YTAugError("Error in get_playlist_info_dlp") from e
 
     playlist_info = {
         "owner_channel_id": info.get("uploader_id"),
@@ -79,7 +79,7 @@ def get_playlist_info_dlp(url: str, js_runtime_config: dict) -> dict:
         "is_playlist": info.get("_type") == "playlist",
     }
     if not playlist_info.get("is_playlist"):
-        raise YTMMError("Provided URL is not a youtube palylist")
+        raise YTAugError("Provided URL is not a youtube palylist")
 
     return playlist_info
 
@@ -110,7 +110,7 @@ def get_video_ids(playlist_url) -> list[str]:
                         video_ids.append(entry["id"])
 
         except Exception as e:
-            raise YTMMError("Error in get_vidoe_ids") from e
+            raise YTAugError("Error in get_vidoe_ids") from e
 
     return video_ids
 

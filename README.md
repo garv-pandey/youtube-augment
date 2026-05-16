@@ -1,18 +1,18 @@
-# ytmm — YouTube Music Manager
+# yt-aug — YouTube Augment
 
 Download audio from YouTube playlists and copy playlists to your account — from the command line.
 
 ## Install
 
 ```bash
-pip install ytmm
+pip install yt-aug
 ```
 
 Requires Python 3.13+.
 
 ## System Requirements
 
-ytmm uses `yt-dlp` under the hood, which needs the following installed on your machine:
+yt-aug uses `yt-dlp` under the hood, which needs the following installed on your machine:
 
 | Binary | Purpose | Windows | macOS | Linux |
 |--------|---------|---------|-------|-------|
@@ -26,11 +26,11 @@ ytmm uses `yt-dlp` under the hood, which needs the following installed on your m
 Downloads audio from a YouTube playlist. Extracts best available audio and converts to m4a at 192kbps via FFmpeg.
 
 ```bash
-ytmm download "https://youtube.com/playlist?list=PL..." -o ~/Music
-ytmm download "https://music.youtube.com/playlist?list=PL..."
+ytaug download "https://youtube.com/playlist?list=PL..." -o ~/Music
+ytaug download "https://music.youtube.com/playlist?list=PL..."
 ```
 
-Before downloading, ytmm will:
+Before downloading, ytaug will:
 1. Check for a JS runtime and ffmpeg
 2. Fetch the playlist metadata (name, track count)
 3. Ask for confirmation
@@ -44,8 +44,8 @@ Before downloading, ytmm will:
 Creates a copy of a YouTube playlist in your account using the YouTube Data API. Requires authentication.
 
 ```bash
-ytmm auth login
-ytmm copy "https://youtube.com/playlist?list=PL..." --name "My Favorites" --public
+ytaug auth login
+ytaug copy "https://youtube.com/playlist?list=PL..." --name "My Favorites" --public
 ```
 
 | Flag | Short | Description |
@@ -58,11 +58,11 @@ ytmm copy "https://youtube.com/playlist?list=PL..." --name "My Favorites" --publ
 Authentication commands for YouTube Data API access.
 
 ```bash
-ytmm auth login --help
-ytmm auth login
-ytmm auth login --no-browser
-ytmm auth logout --all
-ytmm auth whoami
+ytaug auth login --help
+ytaug auth login
+ytaug auth login --no-browser
+ytaug auth logout --all
+ytaug auth whoami
 ```
 
 #### `auth login`
@@ -92,12 +92,12 @@ Show the currently authenticated user's name and email.
 
 Download a playlist to a specific directory:
 ```bash
-ytmm download "https://youtube.com/playlist?list=PL_abc123" -o ~/Music/playlists
+ytaug download "https://youtube.com/playlist?list=PL_abc123" -o ~/Music/playlists
 ```
 
 Copy a public playlist as private:
 ```bash
-ytmm copy "https://youtube.com/playlist?list=PL_abc123" --name "Road Trip"
+ytaug copy "https://youtube.com/playlist?list=PL_abc123" --name "Road Trip"
 ```
 
 ## API Quota
@@ -118,7 +118,7 @@ To use the `copy` command, you need OAuth2 credentials:
 3. Enable the **YouTube Data API v3**
 4. Create credentials → **OAuth 2.0 Client IDs** → **Desktop app**
 5. Download the JSON file as `client_secret.json`
-6. Run `ytmm auth login` and provide the file path
+6. Run `ytaug auth login` and provide the file path
 
 ## Development
 
@@ -136,15 +136,15 @@ uv run ruff check .
 ## Architecture
 
 ```
-src/ytmm/
+src/ytaug/
 ├── main.py         Typer CLI entry point
 ├── download.py     yt-dlp wrapper (downloads, system checks)
 ├── copy.py         YouTube Data API operations
 ├── auth.py         OAuth2 authentication flow
 ├── playlist.py     URL parsing and playlist metadata
-└── exceptions.py   YTMMError hierarchy
+└── exceptions.py   YTAugError hierarchy
 ```
 
 - `main.py` handles all CLI interaction (prompts, messages, exits)
 - Library modules (`download.py`, `auth.py`, `copy.py`, `playlist.py`) are pure logic with no console output
-- All library functions raise `YTMMError` subclasses on operational failure
+- All library functions raise `YTAugError` subclasses on operational failure

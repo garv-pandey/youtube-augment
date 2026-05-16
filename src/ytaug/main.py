@@ -4,14 +4,14 @@ from typing import Annotated, Optional
 from pathlib import Path
 
 # TODO: publish the app
-from ytmm.download import (
+from ytaug.download import (
     check_ffmpeg,
     get_js_runtime,
     get_ffmpeg_install_instructions,
     get_js_runtime_install_instructions,
     download_playlist,
 )
-from ytmm.auth import (
+from ytaug.auth import (
     check_client_secret,
     copy_client_secret,
     check_tokens,
@@ -21,16 +21,16 @@ from ytmm.auth import (
     auth_logout,
     TOKENS_PATH,
 )
-from ytmm.copy import (
+from ytaug.copy import (
     create_playlist,
     add_videos_to_playlist,
 )
-from ytmm.playlist import (
+from ytaug.playlist import (
     is_youtube_playlist,
     get_playlist_info_dlp,
     get_video_ids,
 )
-from ytmm.exceptions import YTMMError, SystemRequirementError
+from ytaug.exceptions import YTAugError, SystemRequirementError
 
 
 app = typer.Typer(no_args_is_help=True)
@@ -78,7 +78,7 @@ def download(
 
     except typer.Exit:
         raise
-    except YTMMError as e:
+    except YTAugError as e:
         typer.echo(f"App error: {e}")
         raise typer.Exit(1)
     except Exception as e:
@@ -110,13 +110,13 @@ def copy(
         # 2. Check client_secret
         if not check_client_secret():
             typer.echo("Error: client secrets not found or invalid.")
-            typer.echo("Run: ytmm auth login")
+            typer.echo("Run: ytaug auth login")
             raise typer.Exit(1)
 
         # 3. Check tokens
         if not check_tokens():
             typer.echo("Error: No valid authentication tokens.")
-            typer.echo("Run: ytmm auth login")
+            typer.echo("Run: ytaug auth login")
             raise typer.Exit(1)
 
         # 4. Get JS runtime config for yt-dlp
@@ -170,7 +170,7 @@ def copy(
 
     except typer.Exit:
         raise
-    except YTMMError as e:
+    except YTAugError as e:
         typer.echo(f"App error: {e}")
         raise typer.Exit(1)
     except Exception as e:
@@ -243,7 +243,7 @@ def login(
 
     except typer.Exit:
         raise
-    except YTMMError as e:
+    except YTAugError as e:
         typer.echo(f"App error: {e}")
         raise typer.Exit(1)
     except Exception as e:
@@ -270,7 +270,7 @@ def logout(
             typer.echo(
                 f"Currently logged in as: {user_info['name']} ({user_info['email']})"
             )
-        except YTMMError:
+        except YTAugError:
             typer.echo("Logged in (account info unavailable).")
 
         if typer.confirm("Want to logout?"):
@@ -280,7 +280,7 @@ def logout(
 
     except typer.Exit:
         raise
-    except YTMMError as e:
+    except YTAugError as e:
         typer.echo(f"App error: {e}")
         raise typer.Exit(1)
     except Exception as e:
@@ -304,7 +304,7 @@ def whoami():
 
     except typer.Exit:
         raise
-    except YTMMError as e:
+    except YTAugError as e:
         typer.echo(f"App error: {e}")
         raise typer.Exit(1)
     except Exception as e:

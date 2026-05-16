@@ -1,14 +1,18 @@
-# ytmm (YouTube Music Manager)
+# ytaug (YouTube Augment)
 
 Python 3.13+ required (see `pyproject.toml`).
 
 ## Project Structure
 
 ```
-src/ytmm/
+src/ytaug/
 ├── __init__.py      (package marker)
+├── main.py          (Typer CLI entry point)
+├── auth.py          (OAuth2 authentication flow)
+├── copy.py          (YouTube Data API operations)
 ├── download.py      (pure logic: downloads, system checks, metadata)
-└── main.py          (Typer CLI entry point)
+├── exceptions.py    (YTAugError hierarchy)
+└── playlist.py      (URL parsing and playlist metadata)
 ```
 
 ## Dependencies
@@ -28,7 +32,7 @@ The following must be installed on the user's machine:
 | `ffmpeg` | Audio extraction/conversion | `winget install ffmpeg` | `brew install ffmpeg` | `sudo apt install ffmpeg` |
 | `deno` or `node` | JS runtime for YouTube challenge solving (deno is default, node ≥ 20 required) | `winget install deno` / `winget install OpenJS.NodeJS` | `brew install deno` / `brew install node` | `curl -fsSL https://deno.land/install.sh \| sh` / See [nodejs.org](https://nodejs.org/en/download/package-manager) |
 
-## CLI Commands (`ytmm`)
+## CLI Commands (`ytaug`)
 
 ### `download` (implemented)
 Downloads audio from a YouTube playlist URL.
@@ -39,7 +43,7 @@ Downloads audio from a YouTube playlist URL.
 4. Downloads best audio → converts to m4a (192kbps) via FFmpeg
 
 ```bash
-ytmm download <playlist_url> [--output <path>]
+ytaug download <playlist_url> [--output <path>]
 ```
 
 | Flag | Short | Description |
@@ -50,7 +54,7 @@ ytmm download <playlist_url> [--output <path>]
 Creates a copy of a YouTube playlist in the user's account. Uses YouTube Data API.
 
 ```bash
-ytmm copy <playlist_url> [--name <name>] [--public]
+ytaug copy <playlist_url> [--name <name>] [--public]
 ```
 
 | Flag | Short | Description |
@@ -62,9 +66,9 @@ ytmm copy <playlist_url> [--name <name>] [--public]
 Subcommands for authentication.
 
 ```bash
-ytmm auth login [--force] [--no-browser]
-ytmm auth logout [--all]
-ytmm auth whoami
+ytaug auth login [--force] [--no-browser]
+ytaug auth logout [--all]
+ytaug auth whoami
 ```
 
 | Command | Description |
@@ -82,13 +86,8 @@ ytmm auth whoami
 ## Architecture
 
 - `main.py` handles all CLI interaction (prompts, messages, exits)
-- `download.py` is a pure logic module (no console output) with functions:
-  - `check_ffmpeg()` → `bool`
-  - `check_js_runtime()` → `str | None`
-  - `get_js_runtime_config()` → `dict` (yt-dlp `js_runtimes` format)
-  - `get_playlist_info(url)` → `Tuple[str, int]` (name, count) or `ValueError`
-  - `download_playlist(url, path)` → `bool`
-- yt-dlp is configured with: `format: bestaudio/best`, `js_runtimes: {runtime: {path: ...}}`, `FFmpegExtractAudio` postprocessor
+- Library modules (`download.py`, `auth.py`, `copy.py`, `playlist.py`) are pure logic with no console output
+- All library functions raise `YTAugError` subclasses on operational failure
 
 ## Dev commands
 
@@ -99,5 +98,5 @@ Not yet established. When adding tooling:
 ## Notes
 
 - Uses `uv` as package manager (see `uv.lock`)
-- Entry point: `ytmm = "ytmm.main:app"` (console script)
+- Entry point: `ytaug = "ytaug.main:app"` (console script)
 - `client_secrets.json` contains YouTube OAuth2 credentials for the `copy`/`authorize` commands

@@ -7,10 +7,10 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request, AuthorizedSession
 
-from ytmm.exceptions import YTMMError
+from ytaug.exceptions import YTAugError
 
-CLIENT_SECRET_PATH = Path(user_config_dir("ytmm")) / "client_secret.json"
-TOKENS_PATH = Path(user_data_dir("ytmm")) / "tokens.json"
+CLIENT_SECRET_PATH = Path(user_config_dir("ytaug")) / "client_secret.json"
+TOKENS_PATH = Path(user_data_dir("ytaug")) / "tokens.json"
 SCOPES = [
     "https://www.googleapis.com/auth/youtube.force-ssl",
     "https://www.googleapis.com/auth/userinfo.email",
@@ -62,7 +62,7 @@ def copy_client_secret(
 ) -> None:
     """
     Copies the user-provided client secret to the application's config directory.
-    The file is stored in an XDG-compliant path (e.g., ~/.config/ytmm/client_secret.json).
+    The file is stored in an XDG-compliant path (e.g., ~/.config/ytaug/client_secret.json).
     Existing files at the destination will be overwritten.
     Args:
         src_path: Path to the source client_secret.json file.
@@ -75,7 +75,7 @@ def copy_client_secret(
         client_secret_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src_path, client_secret_path)
     except Exception as e:
-        raise YTMMError("error in copy_client_secret") from e
+        raise YTAugError("error in copy_client_secret") from e
 
 
 def authenticate(
@@ -110,7 +110,7 @@ def authenticate(
             access_type="offline",
         )
     except Exception as e:
-        raise YTMMError("error in authenticate") from e
+        raise YTAugError("error in authenticate") from e
 
     return creds
 
@@ -173,7 +173,7 @@ def get_credentials(
     try:
         return Credentials.from_authorized_user_file(str(tokens_path), scopes)
     except Exception as e:
-        raise YTMMError("error in get_credentials") from e
+        raise YTAugError("error in get_credentials") from e
 
 
 def get_user_info(credentials: Credentials) -> dict:
@@ -189,7 +189,7 @@ def get_user_info(credentials: Credentials) -> dict:
         result.raise_for_status()
         return result.json()
     except Exception as e:
-        raise YTMMError("error in get_user_info") from e
+        raise YTAugError("error in get_user_info") from e
 
 
 def auth_logout(

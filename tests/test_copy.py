@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from ytmm.copy import add_videos_to_playlist, create_playlist
-from ytmm.exceptions import YTMMError
+from ytaug.copy import add_videos_to_playlist, create_playlist
+from ytaug.exceptions import YTAugError
 
 
 class TestAddVideosToPlaylist:
@@ -38,13 +38,13 @@ class TestAddVideosToPlaylist:
         assert result == 1
         youtube.playlistItems.return_value.insert.assert_called_once()
 
-    def test_insert_failure_raises_ytmmerror(self):
+    def test_insert_failure_raises_ytaugerror(self):
         youtube = MagicMock()
         youtube.playlistItems.return_value.insert.return_value.execute.side_effect = (
             Exception("API error")
         )
 
-        with pytest.raises(YTMMError):
+        with pytest.raises(YTAugError):
             add_videos_to_playlist(
                 credentials=MagicMock(),
                 playlist_id="PL_abc",
@@ -52,9 +52,11 @@ class TestAddVideosToPlaylist:
                 youtube=youtube,
             )
 
-    def test_discovery_failure_raises_ytmmerror(self):
-        with patch("ytmm.copy.discovery.build", side_effect=Exception("Network error")):
-            with pytest.raises(YTMMError):
+    def test_discovery_failure_raises_ytaugerror(self):
+        with patch(
+            "ytaug.copy.discovery.build", side_effect=Exception("Network error")
+        ):
+            with pytest.raises(YTAugError):
                 add_videos_to_playlist(
                     credentials=MagicMock(),
                     playlist_id="PL_abc",
@@ -126,22 +128,24 @@ class TestCreatePlaylist:
         _, kwargs = youtube.playlists.return_value.insert.call_args
         assert kwargs["body"]["snippet"]["description"] == ""
 
-    def test_api_error_raises_ytmmerror(self):
+    def test_api_error_raises_ytaugerror(self):
         youtube = MagicMock()
         youtube.playlists.return_value.insert.return_value.execute.side_effect = (
             Exception("API error")
         )
 
-        with pytest.raises(YTMMError):
+        with pytest.raises(YTAugError):
             create_playlist(
                 credentials=MagicMock(),
                 title="Test",
                 youtube=youtube,
             )
 
-    def test_discovery_failure_raises_ytmmerror(self):
-        with patch("ytmm.copy.discovery.build", side_effect=Exception("Network error")):
-            with pytest.raises(YTMMError):
+    def test_discovery_failure_raises_ytaugerror(self):
+        with patch(
+            "ytaug.copy.discovery.build", side_effect=Exception("Network error")
+        ):
+            with pytest.raises(YTAugError):
                 create_playlist(
                     credentials=MagicMock(),
                     title="Test",

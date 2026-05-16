@@ -2,7 +2,7 @@ from typing import Optional
 from googleapiclient import discovery
 from google.oauth2.credentials import Credentials
 
-from ytmm.exceptions import YTMMError
+from ytaug.exceptions import YTAugError
 
 
 def create_playlist(
@@ -23,7 +23,7 @@ def create_playlist(
             youtube = discovery.build("youtube", "v3", credentials=credentials)
 
     except Exception as e:
-        raise YTMMError("Error in create_playlist") from e
+        raise YTAugError("Error in create_playlist") from e
 
     # 2. Define the privacy status string
     privacy_status = "public" if is_public else "private"
@@ -46,7 +46,7 @@ def create_playlist(
         response = request.execute()
 
     except Exception as e:
-        raise YTMMError("Error in create_playlist") from e
+        raise YTAugError("Error in create_playlist") from e
 
     # 5. Return the new Playlist ID
     return response.get("id")
@@ -65,7 +65,7 @@ def add_videos_to_playlist(
             youtube = discovery.build("youtube", "v3", credentials=credentials)
 
     except Exception as e:
-        raise YTMMError("error in add_videos_to_playlist") from e
+        raise YTAugError("error in add_videos_to_playlist") from e
 
     added_count = 0
 
@@ -81,7 +81,7 @@ def add_videos_to_playlist(
             youtube.playlistItems().insert(part="snippet", body=body).execute()
 
         except Exception as e:
-            raise YTMMError("error in add_videos_to_playlist") from e
+            raise YTAugError("error in add_videos_to_playlist") from e
 
         added_count += 1
 
