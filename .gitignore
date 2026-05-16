@@ -1,0 +1,16 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Environments (uv creates .venv by default)
+.venv/
+.env
+
+# temporary files and folder
+temp/
+temp.*
+
+# Build artifacts
+dist/
+build/
