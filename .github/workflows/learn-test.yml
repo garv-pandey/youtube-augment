@@ -1,0 +1,12 @@
+name: Learning Test Action
+
+on:
+  workflow_dispatch:
+
+jobs:
+  say-hello-job:
+    name: Run an echo comand
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print to terminal
+        run: echo "Hello"
