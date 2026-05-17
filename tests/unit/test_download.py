@@ -23,6 +23,7 @@ class TestCheckFfmpeg:
 # simple functions, doesnt require tests
 
 
+@pytest.mark.unit
 class TestCheckJsRuntime:
     """check_js_runtime() — searches for deno, falls back to node."""
 
@@ -38,6 +39,12 @@ class TestCheckJsRuntime:
 
         assert check_js_runtime() is True
 
+    def test_node_missing_deno_found(self, mocker):
+        mock_which = mocker.patch("ytaug.download.shutil.which")
+        mock_which.side_effect = ["/usr/bin/deno", None]
+
+        assert check_js_runtime() is True
+
     def test_none_found(self, mocker):
         mock_which = mocker.patch("ytaug.download.shutil.which")
         mock_which.return_value = None
@@ -45,6 +52,7 @@ class TestCheckJsRuntime:
         assert check_js_runtime() is False
 
 
+@pytest.mark.unit
 class TestGetYtdlpJsRuntimeConfig:
     """get_ytdlp_js_runtime_config() — collects all found JS runtimes into a dict."""
 
