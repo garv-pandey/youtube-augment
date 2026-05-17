@@ -12,11 +12,13 @@ def check_ffmpeg() -> bool:
 def get_ffmpeg_install_instructions() -> str:
     os_name = platform.system()
     instructions = {
-        "Windows": "winget install ffmpeg",
-        "Darwin": "brew install ffmpeg",
-        "Linux": "sudo apt install ffmpeg (Debian/Ubuntu) or sudo dnf install ffmpeg (Fedora)",
+        "Windows": "winget install ffmpeg \nor check their website: https://ffmpeg.org",
+        "Darwin": "brew install ffmpeg \nor check their website: https://ffmpeg.org",
+        "Linux": "sudo apt install ffmpeg (Debian/Ubuntu) \nor sudo dnf install ffmpeg (Fedora) \nor check their website: https://ffmpeg.org",
     }
-    return instructions.get(os_name, "See https://ffmpeg.org/download.html")
+    return instructions.get(
+        os_name, "check their website for download instructions \nhttps://ffmpeg.org"
+    )
 
 
 def get_js_runtime() -> tuple[str, dict]:
@@ -39,13 +41,50 @@ def get_js_runtime() -> tuple[str, dict]:
 def get_js_runtime_install_instructions() -> str:
     os_name = platform.system()
     instructions = {
-        "Windows": "winget install deno  OR  winget install OpenJS.NodeJS",
-        "Darwin": "brew install deno  OR  brew install node",
-        "Linux": "curl -fsSL https://deno.land/install.sh | sh  OR  See https://nodejs.org/en/download/package-manager",
+        "Windows": "winget install deno  OR  winget install OpenJS.NodeJS \nor check their website: \nhttps://deno.com OR https://nodejs.org",
+        "Darwin": "brew install deno  OR  brew install node \nor check their website: \nhttps://deno.com OR https://nodejs.org",
+        "Linux": "curl -fsSL https://deno.land/install.sh | sh  OR  See https://nodejs.org/en/download/package-manager \nor check their website: \nhttps://deno.com OR https://nodejs.org",
     }
     return instructions.get(
-        os_name, "See https://deno.land  OR  See https://nodejs.org"
+        os_name,
+        "check their website for download instructions \nhttps://deno.com OR  See https://nodejs.org",
     )
+
+
+def get_playlist_info_dlp(url: str, js_runtime_config: dict) -> dict:
+    """
+    runtime: {"path": full_path}}
+    """
+
+    ydl_opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "extract_flat": True,
+        "js_runtimes": js_runtime_config,
+    }
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+    except Exception as e:
+        if "private" in str(e).lower():
+            raise YTAugError("Provided playlist is private") from e
+
+        raise YTAugError("Error in get_playlist_info_dlp") from e
+
+    playlist_info = {
+        "owner_channel_id": info.get("uploader_id"),
+        "id": info.get("id"),
+        "title": info.get("title"),
+        "description": info.get("description"),
+        "video_count": info.get("playlist_count") or len(info.get("entries")),
+        "privacy_status": info.get("availability"),
+        "is_playlist": info.get("_type") == "playlist",
+    }
+    if not playlist_info.get("is_playlist"):
+        raise YTAugError("Provided URL is not a youtube palylist")
+
+    return playlist_info
 
 
 def download_playlist(playlist_url: str, target_path: Path, js_runtimes: dict) -> None:
