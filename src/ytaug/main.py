@@ -6,13 +6,13 @@ from pathlib import Path
 # TODO: publish the app
 from ytaug.download import (
     check_ffmpeg,
-    get_js_runtime,
+    get_ytdlp_js_runtime_config,
     get_ffmpeg_install_instructions,
     get_js_runtime_install_instructions,
     download_playlist,
     get_playlist_info_dlp,
 )
-from ytaug.exceptions import YTAugError, SystemRequirementError
+from ytaug.exceptions import YTAugError
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -26,9 +26,8 @@ def download(
     ] = Path.cwd(),
 ):
     try:
-        try:
-            _, runtime_config = get_js_runtime()
-        except SystemRequirementError:
+        runtime_config = get_ytdlp_js_runtime_config()
+        if not runtime_config:
             typer.echo(
                 "Error: A JavaScript runtime (deno or node) is required but not found on your system."
             )

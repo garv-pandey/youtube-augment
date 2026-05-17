@@ -21,21 +21,34 @@ def get_ffmpeg_install_instructions() -> str:
     )
 
 
-def get_js_runtime() -> tuple[str, dict]:
+def check_js_runtime() -> bool:
     """
-    Checks for available JS runtimes and returns:
-    - The runtime name
-    - yt-dlp js_runtimes config dict
+    Checks for available JS runtimes in order of preference.
 
-    Raises:
-        SystemRequirementError if not js runtime found in system
+    Returns:
+        True if at least one runtime is available, False otherwise.
     """
     for runtime in ("deno", "node"):
         full_path = shutil.which(runtime)
         if full_path:
-            return runtime, {runtime: {"path": full_path}}
+            return True
+    return False
 
-    raise SystemRequirementError("No JavaScript runtime found.")
+
+def get_ytdlp_js_runtime_config() -> dict:
+    """
+    Returns a yt-dlp js_runtimes config dict with all found JS runtimes.
+
+    Returns:
+        dict in js_runtimes format, e.g. {"deno": {"path": "/usr/bin/deno"}}.
+        Empty dict if no runtime found.
+    """
+    config = {}
+    for runtime in ("deno", "node"):
+        path = shutil.which(runtime)
+        if path:
+            config[runtime] = {"path": path}
+    return config
 
 
 def get_js_runtime_install_instructions() -> str:
