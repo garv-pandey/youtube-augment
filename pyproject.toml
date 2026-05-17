@@ -25,6 +25,10 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "unit: Quick logic tests that require zero external tools.",
+  "integration: Real runtime environment or platform binary execution tests."
+]
 
 [project.scripts]
 ytaug = "ytaug.main:app"
