@@ -1,55 +1,46 @@
 import pytest
-from unittest.mock import patch
 from ytaug.download import (
-    check_ffmpeg,
-    check_js_runtime,
-    download_playlist,
-    get_playlist_info_dlp,
+    has_js_runtime,
+    is_youtube_url,
+    get_url_info_ytdlp,
     get_ytdlp_js_runtime_config,
 )
 from ytaug.exceptions import YTAugError
 
 
-class TestCheckFfmpeg:
-    def test_ffmpeg_found(self):
-        pass
-
-    def test_ffmpeg_not_found(self):
-        pass
-
-
+# TestHasFfmpeg
 # TestGetFfmpegInstallInstructions
 # TestGetJsRuntimeInstallInstructions
 # simple functions, doesnt require tests
 
 
 @pytest.mark.unit
-class TestCheckJsRuntime:
+class TestHasJsRuntime:
     """check_js_runtime() — searches for deno, falls back to node."""
 
     def test_deno_found(self, mocker):
         mock_which = mocker.patch("ytaug.download.shutil.which")
         mock_which.return_value = "/usr/bin/deno"
 
-        assert check_js_runtime() is True
+        assert has_js_runtime() is True
 
     def test_deno_missing_node_found(self, mocker):
         mock_which = mocker.patch("ytaug.download.shutil.which")
         mock_which.side_effect = [None, "/usr/bin/node"]
 
-        assert check_js_runtime() is True
+        assert has_js_runtime() is True
 
     def test_node_missing_deno_found(self, mocker):
         mock_which = mocker.patch("ytaug.download.shutil.which")
         mock_which.side_effect = ["/usr/bin/deno", None]
 
-        assert check_js_runtime() is True
+        assert has_js_runtime() is True
 
     def test_none_found(self, mocker):
         mock_which = mocker.patch("ytaug.download.shutil.which")
         mock_which.return_value = None
 
-        assert check_js_runtime() is False
+        assert has_js_runtime() is False
 
 
 @pytest.mark.unit
@@ -85,30 +76,97 @@ class TestGetYtdlpJsRuntimeConfig:
         assert get_ytdlp_js_runtime_config() == {}
 
 
-class TestGetPlaylistInfoDlp:
-    def test_standard_playlist(self):
-        pass
+@pytest.mark.unit
+class TestIsYoutubeUrl:
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://www.youtube.com/watch?v=abc",
+            "https://youtube.com/watch?v=abc",
+            "https://music.youtube.com/playlist?list=PL_abc",
+            "https://m.youtube.com/watch?v=abc",
+            "https://youtu.be/abc",
+            "http://www.youtube.com/watch?v=abc",
+            "youtube.com/watch?v=abc",
+            "www.youtube.com/watch?v=abc",
+            "YOUTUBE.COM/watch?v=abc",
+            "https://YouTube.com/watch?v=abc",
+        ],
+    )
+    def test_valid_youtube_urls(self, url):
+        assert is_youtube_url(url) is True
 
-    def test_missing_optional_fields(self):
-        pass
+    @pytest.mark.parametrize(
+        "url",
+        [
+            "https://vimeo.com/123",
+            "https://example.com",
+            "https://evil.com?domain=youtube.com",
+            "https://youtube.com.evil.com/",
+            "https://youtube.comm/",
+            None,
+            "",
+            "   ",
+            "not-a-url",
+            "youtube",
+        ],
+    )
+    def test_invalid_urls(self, url):
+        assert is_youtube_url(url) is False
 
-    def test_video_count_from_entries_when_playlist_count_missing(self):
-        pass
 
-    def test_video_count_prefers_playlist_count(self):
-        pass
+@pytest.mark.unit
+class TestGetUrlInfoYtdlp:
+    """get_url_info_ytdlp() — extracts metadata from URLs via yt-dlp."""
 
-    def test_private_playlist_raises_ytaugerror(self):
-        pass
+    def test_returns_video_info(self, mocker):
+        mock_ydl = mocker.patch("ytaug.download.yt_dlp.YoutubeDL")
+        mock_instance = mock_ydl.return_value.__enter__.return_value
+        # __enter__.return_value maps to "with ... as ydl" is actual code
+        mock_instance.extract_info.return_value = {
+            "_type": "video",
+            "title": "Test Video",
+            "id": "abc123",
+        }
 
-    def test_other_ytdlp_error_raises_ytaugerror(self):
-        pass
+        result = get_url_info_ytdlp("https://youtube.com/watch?v=abc123", {})
 
-    def test_not_a_playlist_raises_ytaugerror(self):
-        pass
+        assert result == {"type": "video", "title": "Test Video", "id": "abc123"}
 
-    def test_youtubedl_constructor_fails_raises_ytaugerror(self):
-        pass
+    def test_returns_playlist_info(self, mocker):
+        mock_ydl = mocker.patch("ytaug.download.yt_dlp.YoutubeDL")
+        mock_instance = mock_ydl.return_value.__enter__.return_value
+        mock_instance.extract_info.return_value = {
+            "_type": "playlist",
+            "title": "Test Playlist",
+            "id": "PL_abc",
+            "playlist_count": 10,
+        }
+
+        result = get_url_info_ytdlp("https://youtube.com/playlist?list=PL_abc", {})
+
+        assert result == {
+            "type": "playlist",
+            "title": "Test Playlist",
+            "id": "PL_abc",
+            "video_count": 10,
+        }
+
+    def test_raises_on_private(self, mocker):
+        mock_ydl = mocker.patch("ytaug.download.yt_dlp.YoutubeDL")
+        mock_instance = mock_ydl.return_value.__enter__.return_value
+        mock_instance.extract_info.side_effect = Exception("This video is private")
+
+        with pytest.raises(YTAugError, match="Provided url is private"):
+            get_url_info_ytdlp("https://youtube.com/watch?v=abc", {})
+
+    def test_raises_on_other_error(self, mocker):
+        mock_ydl = mocker.patch("ytaug.download.yt_dlp.YoutubeDL")
+        mock_instance = mock_ydl.return_value.__enter__.return_value
+        mock_instance.extract_info.side_effect = Exception("Network error")
+
+        with pytest.raises(YTAugError, match="Error in get_playlist_info_dlp"):
+            get_url_info_ytdlp("https://youtube.com/watch?v=abc", {})
 
 
 class TestDownloadPlaylist:
