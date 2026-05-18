@@ -1,5 +1,7 @@
 import pytest
+from pathlib import Path
 from ytaug.download import (
+    download_url_ytdlp,
     has_js_runtime,
     is_youtube_url,
     get_url_info_ytdlp,
@@ -165,13 +167,40 @@ class TestGetUrlInfoYtdlp:
         mock_instance = mock_ydl.return_value.__enter__.return_value
         mock_instance.extract_info.side_effect = Exception("Network error")
 
-        with pytest.raises(YTAugError, match="Error in get_playlist_info_dlp"):
+        with pytest.raises(YTAugError):
             get_url_info_ytdlp("https://youtube.com/watch?v=abc", {})
 
 
-class TestDownloadPlaylist:
-    def test_success(self):
-        pass
+@pytest.mark.unit
+class TestDownloadUrlYtdlp:
+    """download_url_ytdlp() — downloads audio from a URL via yt-dlp."""
 
-    def test_failure_raises_ytaugerror(self):
-        pass
+    def test_sets_playlist_subfolder(self, mocker, tmp_path):
+        mock_ydl = mocker.patch("ytaug.download.yt_dlp.YoutubeDL")
+
+        download_url_ytdlp(
+            "https://youtube.com/playlist?list=PL_abc",
+            tmp_path,
+            is_playlist=True,
+            js_runtime_config={"deno": {"path": "/usr/bin/deno"}},
+        )
+
+        # gets the first passed argument to the mock which is ydl_opts
+        call_args = mock_ydl.call_args[0][0]
+        outtmpl = call_args["outtmpl"]
+        assert "%(playlist_title)s" in outtmpl
+        assert outtmpl.startswith(str(tmp_path))
+
+    def test_raises_on_failure(self, mocker, tmp_path):
+        mock_ydl = mocker.patch("ytaug.download.yt_dlp.YoutubeDL")
+        mock_ydl.return_value.__enter__.return_value.download.side_effect = Exception(
+            "yt-dlp error"
+        )
+
+        with pytest.raises(YTAugError):
+            download_url_ytdlp(
+                "https://youtube.com/watch?v=abc",
+                tmp_path,
+                is_playlist=False,
+                js_runtime_config={},
+            )

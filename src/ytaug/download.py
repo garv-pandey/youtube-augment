@@ -6,6 +6,7 @@ from pathlib import Path
 from ytaug.exceptions import YTAugError
 
 # TODO: update download_playlsit to work for both youtube-video and youtube-playlist(use playlist_name as folder)
+# TODO: handle playlist does not exit:"https://www.youtube.com/playlist?list=PLwivhteH3vK_S0yV2w3gCh_zM-2S_3N-Z"
 
 
 def has_ffmpeg() -> bool:
@@ -102,7 +103,7 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
         if "private" in str(e).lower():
             raise YTAugError("Provided url is private") from e
 
-        raise YTAugError("Error in get_playlist_info_dlp") from e
+        raise YTAugError("Error in get_url_info_ytdlp") from e
 
     url_info = {
         "type": info.get("_type"),
@@ -115,12 +116,14 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
     return url_info
 
 
-def download_playlist(playlist_url: str, target_path: Path, js_runtimes: dict) -> None:
+def download_url_ytdlp(
+    url: str, target_path: Path, is_playlist: bool, js_runtime_config: dict
+) -> None:
     ydl_opts = {
         # "quiet": True,
         "format": "bestaudio/best",
         "outtmpl": str(target_path / "%(title)s.%(ext)s"),
-        "js_runtimes": js_runtimes,
+        "js_runtimes": js_runtime_config,
         "postprocessors": [
             {
                 "key": "FFmpegExtractAudio",
@@ -129,11 +132,16 @@ def download_playlist(playlist_url: str, target_path: Path, js_runtimes: dict) -
             }
         ],
     }
+    if is_playlist:
+        ydl_opts["outtmpl"] = str(
+            target_path / "%(playlist_title)s" / "%(title)s.%(ext)s"
+        )
+
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([playlist_url])
+            ydl.download([url])
     except Exception as e:
-        raise YTAugError("Error in download_playlist") from e
+        raise YTAugError("Error in download_url_ytdlp") from e
 
 
 if __name__ == "__main__":
