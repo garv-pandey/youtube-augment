@@ -197,7 +197,7 @@ class TestDownloadUrlYtdlp:
             "yt-dlp error"
         )
 
-        with pytest.raises(YTAugError):
+        with pytest.raises(Exception):
             download_url_ytdlp(
                 "https://youtube.com/watch?v=abc",
                 tmp_path,

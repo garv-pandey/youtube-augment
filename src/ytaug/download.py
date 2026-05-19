@@ -160,7 +160,7 @@ def download_url_ytdlp(
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
     except Exception as e:
-        raise YTAugError("Error in download_url_ytdlp") from e
+        raise Exception("Unexpected error in download_url_ytdlp") from e
 
 
 if __name__ == "__main__":
