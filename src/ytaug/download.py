@@ -121,6 +121,9 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
         if "Error 400" in str(e):
             raise YTAugError("Provided video/playlist URL does not exist on youtube")
 
+        # if its not Error 400:
+        raise Exception("Unexpected error in get_url_info_ytdlp") from e
+
     url_info = {
         "type": info.get("_type"),
         "title": info.get("title"),
