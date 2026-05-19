@@ -14,13 +14,33 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
+      - name: Set up ffmpeg
+        uses: actions/github-action-ffmpeg@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Verify runtimes and paths
+        run: |
+          ffmpeg -version
+          node --version
+          deno --version
+        shell: bash
 
       - name: 🐍 Set up Python 3.13
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
 
       - name: ⚡ Install uv
         run: pip install uv

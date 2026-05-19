@@ -1,4 +1,3 @@
-from os import path
 import typer
 import traceback
 from typing import Annotated
@@ -15,6 +14,9 @@ from ytaug.download import (
     is_youtube_url,
 )
 from ytaug.exceptions import YTAugError
+
+# TODO: save unhandled exceptions in log
+# TODO: print traceback of all errors except custom errors
 
 app = typer.Typer(no_args_is_help=True)
 
@@ -76,7 +78,7 @@ def download(
     except YTAugError as e:
         typer.echo(f"App error: {e}")
     except Exception as e:
-        traceback.print_exc()
+        typer.echo(traceback.print_exception(e))
         typer.echo(f"Uncaught Exception: {e}")
 
 

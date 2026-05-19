@@ -7,6 +7,8 @@ from ytaug.exceptions import YTAugError
 
 # TODO: handle playlist does not exist:"https://www.youtube.com/playlist?list=PLwivhteH3vK_S0yV2w3gCh_zM-2S_3N-Z"
 # TODO: handle no internet connection error
+# TODO: handle private video/playlist error
+# TODO: raise custom error for only expected errors
 
 
 def has_ffmpeg() -> bool:
@@ -89,21 +91,35 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
     runtime: {"path": full_path}}
     """
 
+    # dummy logger class to pass yt_dlp's logger so that it doesnt log anything to terminal
+    class _NullLogger:
+        def debug(self, msg):
+            pass
+
+        def info(self, msg):
+            pass
+
+        def warning(self, msg):
+            pass
+
+        def error(self, msg):
+            pass
+
     ydl_opts = {
         "quiet": True,
         "no_warnings": True,
         "extract_flat": True,
         "js_runtimes": js_runtime_config,
+        "logger": _NullLogger(),
     }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-    except Exception as e:
-        if "private" in str(e).lower():
-            raise YTAugError("Provided url is private") from e
 
-        raise YTAugError("Error in get_url_info_ytdlp") from e
+    except yt_dlp.utils.DownloadError as e:
+        if "Error 400" in str(e):
+            raise YTAugError("Provided video/playlist URL does not exist on youtube")
 
     url_info = {
         "type": info.get("_type"),
