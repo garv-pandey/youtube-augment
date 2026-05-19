@@ -71,6 +71,8 @@ def check_host_ffmpeg():
 
 
 @pytest.mark.integration
+@pytest.mark.local_only
+# youtube marks the server ips as bots hence cannot be tested via github workflow
 class TestGetUrlInfoYtdlpIntegration:
     """Verifies yt-dlp successfully executes live network queries using host tools."""
 
@@ -107,6 +109,8 @@ class TestGetUrlInfoYtdlpIntegration:
 
 
 @pytest.mark.integration
+@pytest.mark.local_only
+# youtube marks the server ips as bots hence cannot be tested via github workflow
 class TestDownloadUrlYtdlpIntegration:
     """Verifies end-to-end media downloading, directory structuring, and FFmpeg transcoding."""
 
