@@ -5,8 +5,8 @@ import urllib
 from pathlib import Path
 from ytaug.exceptions import YTAugError
 
-# TODO: update download_playlsit to work for both youtube-video and youtube-playlist(use playlist_name as folder)
-# TODO: handle playlist does not exit:"https://www.youtube.com/playlist?list=PLwivhteH3vK_S0yV2w3gCh_zM-2S_3N-Z"
+# TODO: handle playlist does not exist:"https://www.youtube.com/playlist?list=PLwivhteH3vK_S0yV2w3gCh_zM-2S_3N-Z"
+# TODO: handle no internet connection error
 
 
 def has_ffmpeg() -> bool:
