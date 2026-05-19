@@ -14,15 +14,23 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-      - name: Set up ffmpeg
+      # setup ffmpeg, no first-party utilities for it. 
+      # third-party FedericoCarboni doesnt provide on ARM64
+      - name: 🎬 Set up FFmpeg (Linux & Windows)
+        if: runner.os != 'macOS'
         uses: FedericoCarboni/setup-ffmpeg@v3
 
-      - name: Set up Node.js
+      - name: 🎬 Set up FFmpeg (macOS ARM64)
+        if: runner.os == 'macOS'
+        run: brew install ffmpeg
+
+      # setup node and deno
+      - name: 🟢 Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
 
-      - name: Set up Deno
+      - name: 🦕 Set up Deno
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x

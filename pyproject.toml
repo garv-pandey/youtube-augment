@@ -27,7 +27,7 @@ dev = [
 testpaths = ["tests"]
 markers = [
   "unit: Quick logic tests that require zero external tools.",
-  "integration: Real runtime environment or platform binary execution tests."
+  "integration: Real runtime environment or platform binary execution tests.",
   "local_only: Tests that should only be run on local machine."
 ]
 
