@@ -1,7 +1,13 @@
 name: OS Matrix Tests
 
 on:
-  workflow_dispatch:
+  # manual trigger
+  workflow_dispatch: 
+
+  # on pull request on main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   test-acroos-os:
@@ -14,7 +20,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-      # setup ffmpeg, no first-party utilities for it. 
+      # setup ffmpeg, no first-party utilities for it.
       # third-party FedericoCarboni doesnt provide on ARM64
       - name: 🎬 Set up FFmpeg (Linux & Windows)
         if: runner.os != 'macOS'
