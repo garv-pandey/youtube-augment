@@ -4,6 +4,7 @@ import yt_dlp
 import urllib
 from pathlib import Path
 from ytaug.exceptions import YTAugError
+import json
 
 # TODO: ytdlp is not return type (video/playlist) reliably
 # TODO: handle playlist does not exist:"https://www.youtube.com/playlist?list=PLwivhteH3vK_S0yV2w3gCh_zM-2S_3N-Z"
@@ -118,7 +119,15 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
-        print(info)
+        with open("temp.json", "w", encoding="utf-8") as f:
+            # https://www.youtube.com/watch?v=hv8L21sug98
+            # https://www.youtube.com/playlist?list=PLD0UJYil0pcdvbPlFbxrCbymz33en6ICB
+            # https://www.youtube.com/watch?v=hv8L21sug98&list=PLD0UJYil0pcdvbPlFbxrCbymz33en6ICB&index=6&t=9921s
+            # for video media_type: video
+            # for playlist _type: playlist
+            # for video in playlist _type: url, id:playlist_id, title:playlist_title, downloads playlist
+            json.dump(info, f, indent=4)
+
     except yt_dlp.utils.DownloadError as e:
         # invalid id length of playlist
         if "error 400" in str(e).lower():
@@ -146,7 +155,7 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
         raise Exception("Unexpected error in get_url_info_ytdlp") from e
 
     url_info = {
-        "type": info.get("_type"),
+        "type": info.get("media_type"),
         "title": info.get("title"),
         "id": info.get("id"),
     }
