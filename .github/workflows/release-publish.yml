@@ -10,7 +10,8 @@ permissions:
   id-token: write # to get pypi OIDC token (used for trusted publishing)
 
 jobs:
-  create-git-tag:
+  release-and-publish:
+    name: Create GitHub tag+release and publish on PyPI
     runs-on: ubuntu-latest
     environment: runner-yt-aug
 
@@ -103,8 +104,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    # - name: 🚀 Publish package distributions to PyPI (Trusted Publishing)
-    #   if: steps.version_check.outputs.should_tag == 'true'
-    #   run: |
-    #     # uv securely detects the GitHub id-token and exchanges it automatically
-    #     uv publish
+    - name: 🚀 Publish package distributions to PyPI (Trusted Publishing)
+      if: steps.version_check.outputs.should_tag == 'true'
+      run: |
+        # uv securely detects the GitHub id-token and exchanges it automatically
+        uv publish
