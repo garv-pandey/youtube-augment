@@ -5,6 +5,7 @@ import urllib
 from pathlib import Path
 from ytaug.exceptions import YTAugError
 
+# TODO: ytdlp is not return type (video/playlist) reliably
 # TODO: handle playlist does not exist:"https://www.youtube.com/playlist?list=PLwivhteH3vK_S0yV2w3gCh_zM-2S_3N-Z"
 # TODO: handle no internet connection error
 # TODO: handle private video/playlist error
@@ -117,11 +118,31 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
+        print(info)
     except yt_dlp.utils.DownloadError as e:
-        if "Error 400" in str(e):
-            raise YTAugError("Provided video/playlist URL does not exist on youtube")
+        # invalid id length of playlist
+        if "error 400" in str(e).lower():
+            print(e)
+            raise YTAugError("Provided URL does not exist on youtube.")
 
-        # if its not Error 400:
+        # playlist id not found
+        if "playlist does not exist" in str(e).lower():
+            print(e)
+            raise YTAugError("Playlist does not exist.")
+
+        # invalid id length of video
+        if "incomplete youtube id" in str(e).lower():
+            # when the id part is cut short or missing characters
+            print(e)
+            raise YTAugError("Provided URL is incomplete or trucated.")
+
+        # vidoe id not found
+        if "video unavailable" in str(e).lower():
+            print(e)
+            raise YTAugError(
+                "Provided URL is either removed, region restricted or age restricted"
+            )
+
         raise Exception("Unexpected error in get_url_info_ytdlp") from e
 
     url_info = {
@@ -132,6 +153,7 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
     if (url_info.get("type")) == "playlist":
         url_info["video_count"] = info.get("playlist_count")
 
+    print(url_info)
     return url_info
 
 
