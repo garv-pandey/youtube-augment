@@ -7,12 +7,16 @@ Python 3.13+ required (see `pyproject.toml`).
 ```
 src/ytaug/
 ├── __init__.py      (package marker)
-├── main.py          (Typer CLI entry point)
-├── auth.py          (OAuth2 authentication flow)
-├── copy.py          (YouTube Data API operations)
-├── download.py      (pure logic: downloads, system checks, metadata)
-├── exceptions.py    (YTAugError hierarchy)
-└── playlist.py      (URL parsing and playlist metadata)
+├── main.py          (Typer CLI entry point — orchestration + user I/O)
+├── download.py      (pure logic: system checks, URL validation, metadata, downloads)
+└── exceptions.py    (YTAugError hierarchy)
+
+tests/
+├── unit/
+│   └── test_download.py   (unit tests with mocks)
+└── integration/
+    ├── __init__.py
+    └── test_download.py   (live tests against real YouTube URLs)
 ```
 
 ## Dependencies
@@ -22,6 +26,12 @@ src/ytaug/
 | `typer` | CLI framework |
 | `yt-dlp` | Video/audio download engine |
 | `yt-dlp-ejs` | EJS challenge solver scripts (required for YouTube) |
+
+Dev dependencies:
+| Package | Purpose |
+|---------|---------|
+| `pytest` | Test runner |
+| `pytest-mock` | Mocking (`mocker` fixture) |
 
 ## System Requirements
 
@@ -35,68 +45,49 @@ The following must be installed on the user's machine:
 ## CLI Commands (`ytaug`)
 
 ### `download` (implemented)
-Downloads audio from a YouTube playlist URL.
+Downloads audio from a YouTube URL (video or playlist).
 
-1. Checks for JS runtime (deno/node) and ffmpeg, exits with install instructions if missing
-2. Fetches playlist metadata (name, track count) from URL using yt-dlp
-3. Shows interactive `[y/N]` confirmation via `typer.confirm()`
-4. Downloads best audio → converts to m4a (192kbps) via FFmpeg
+1. Checks for JS runtime and ffmpeg, exits with install instructions if missing
+2. Validates the URL is from a YouTube domain
+3. Fetches metadata (title, type, track count for playlists) using yt-dlp
+4. Shows interactive `[y/N]` confirmation with download destination
+5. Downloads best audio → organizes playlists into subfolders → converts to m4a (192kbps) via FFmpeg
 
 ```bash
-ytaug download <playlist_url> [--output <path>]
+ytaug download <url> [--output <path>]
 ```
 
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--output` | `-o` | Output directory (default: current directory) |
 
-### `copy`
-Creates a copy of a YouTube playlist in the user's account. Uses YouTube Data API.
-
-```bash
-ytaug copy <playlist_url> [--name <name>] [--public]
-```
-
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--name` | `-n` | Custom name for the new playlist |
-| `--public` | `-p` | Make the new playlist public (default: private) |
-
-### `auth`
-Subcommands for authentication.
-
-```bash
-ytaug auth login [--force] [--no-browser]
-ytaug auth logout [--all]
-ytaug auth whoami
-```
-
-| Command | Description |
-|---------|-------------|
-| `login` | Authenticate with your YouTube account |
-| `logout` | Revoke authentication tokens and log out |
-| `whoami` | Show the currently authenticated user |
-
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--force` | `-f` | Skip confirmation for re-authentication |
-| `--no-browser` / `--headless` | | Print auth URL instead of opening a browser |
-| `--all` | `-a` | Also delete client secrets on logout |
-
 ## Architecture
 
-- `main.py` handles all CLI interaction (prompts, messages, exits)
-- Library modules (`download.py`, `auth.py`, `copy.py`, `playlist.py`) are pure logic with no console output
-- All library functions raise `YTAugError` subclasses on operational failure
+- `main.py` handles all CLI interaction (prompts, messages, exits), orchestrates checks
+- `download.py` is a pure logic module (no console output) with functions:
+  - `has_ffmpeg()` → `bool`
+  - `has_js_runtime()` → `bool`
+  - `get_ffmpeg_install_instructions()` → `str`
+  - `get_js_runtime_install_instructions()` → `str`
+  - `get_ytdlp_js_runtime_config()` → `dict` (yt-dlp `js_runtimes` format)
+  - `is_youtube_url(url)` → `bool`
+  - `get_url_info_ytdlp(url, js_runtime_config)` → `dict` (title, type, id, video_count)
+  - `download_url_ytdlp(url, target_path, is_playlist, js_runtime_config)` → `None`
+- yt-dlp is configured with: `format: bestaudio/best`, `js_runtimes: {runtime: {path: ...}}`, `FFmpegExtractAudio` postprocessor
+- All library functions raise `YTAugError` on operational failure
 
 ## Dev commands
 
-Not yet established. When adding tooling:
-- Use `ruff` for linting (faster than flake8)
-- Use `pytest` for testing
+```bash
+uv run pytest                  # full suite (unit + integration)
+uv run pytest tests/unit       # unit tests only
+uv run pytest -m integration   # integration tests only
+uv run ruff check .
+```
 
 ## Notes
 
 - Uses `uv` as package manager (see `uv.lock`)
 - Entry point: `ytaug = "ytaug.main:app"` (console script)
-- `client_secrets.json` contains YouTube OAuth2 credentials for the `copy`/`authorize` commands
+- Integration tests require a JS runtime + ffmpeg on the system
+- Integration tests marked with `@pytest.mark.integration`

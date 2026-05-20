@@ -8,6 +8,8 @@ from ytaug.download import (
 )
 from ytaug.exceptions import YTAugError
 
+# TODO: figure out what aspects of get_info and download_url_ to integrate test
+
 
 @pytest.mark.integration
 def test_check_js_runtime_mirrors_actual_os():

@@ -9,6 +9,7 @@ from ytaug.download import (
 )
 from ytaug.exceptions import YTAugError
 
+# TODO: rrethink what aspects to unit test for each function
 
 # TestHasFfmpeg
 # TestGetFfmpegInstallInstructions

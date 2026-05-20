@@ -1,6 +1,6 @@
 # yt-aug — YouTube Augment
 
-Download audio from YouTube playlists and copy playlists to your account — from the command line.
+Download audio from YouTube videos and playlists — from the command line.
 
 ## Install
 
@@ -21,104 +21,26 @@ yt-aug uses `yt-dlp` under the hood, which needs the following installed on your
 
 ## Usage
 
-### `download <playlist_url>`
+### `download <url>`
 
-Downloads audio from a YouTube playlist. Extracts best available audio and converts to m4a at 192kbps via FFmpeg.
+Downloads audio from a YouTube video or playlist. Extracts best available audio and converts to m4a at 192kbps via FFmpeg.
 
 ```bash
+ytaug download "https://youtube.com/watch?v=..." -o ~/Music
 ytaug download "https://youtube.com/playlist?list=PL..." -o ~/Music
 ytaug download "https://music.youtube.com/playlist?list=PL..."
 ```
 
 Before downloading, ytaug will:
 1. Check for a JS runtime and ffmpeg
-2. Fetch the playlist metadata (name, track count)
+2. Fetch the URL metadata (title, type, track count for playlists)
 3. Ask for confirmation
+
+For playlists, files are organized into a subfolder named after the playlist.
 
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--output` | `-o` | Output directory (default: current directory) |
-
-### `copy <playlist_url>`
-
-Creates a copy of a YouTube playlist in your account using the YouTube Data API. Requires authentication.
-
-```bash
-ytaug auth login
-ytaug copy "https://youtube.com/playlist?list=PL..." --name "My Favorites" --public
-```
-
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--name` | `-n` | Custom name for the new playlist (default: original title) |
-| `--public` | `-p` | Make the new playlist public (default: private) |
-
-### `auth`
-
-Authentication commands for YouTube Data API access.
-
-```bash
-ytaug auth login --help
-ytaug auth login
-ytaug auth login --no-browser
-ytaug auth logout --all
-ytaug auth whoami
-```
-
-#### `auth login`
-
-Authenticate with your YouTube account via OAuth2.
-
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--force` | `-f` | Re-authenticate even if already logged in |
-| `--no-browser` | | Print auth URL instead of opening a browser (for headless environments) |
-
-On first login, you'll be prompted for a `client_secret.json` file. This file contains your OAuth2 credentials and can be obtained from the [Google Cloud Console](https://console.cloud.google.com/).
-
-#### `auth logout`
-
-Revoke authentication tokens and log out.
-
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--all` | `-a` | Also delete the client secrets file |
-
-#### `auth whoami`
-
-Show the currently authenticated user's name and email.
-
-## Examples
-
-Download a playlist to a specific directory:
-```bash
-ytaug download "https://youtube.com/playlist?list=PL_abc123" -o ~/Music/playlists
-```
-
-Copy a public playlist as private:
-```bash
-ytaug copy "https://youtube.com/playlist?list=PL_abc123" --name "Road Trip"
-```
-
-## API Quota
-
-The `copy` command uses the YouTube Data API v3, which has a daily quota of 10,000 units. Each operation costs:
-
-| Operation | Cost |
-|-----------|------|
-| `playlists().insert` (create playlist) | 50 units |
-| `playlistItems().insert` (add video) | 50 units per video |
-
-## Authentication
-
-To use the `copy` command, you need OAuth2 credentials:
-
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project (or select existing)
-3. Enable the **YouTube Data API v3**
-4. Create credentials → **OAuth 2.0 Client IDs** → **Desktop app**
-5. Download the JSON file as `client_secret.json`
-6. Run `ytaug auth login` and provide the file path
 
 ## Development
 
@@ -129,22 +51,22 @@ uv sync
 # Run tests
 uv run pytest
 
-# Run linting
-uv run ruff check .
+# Run unit tests only
+uv run pytest tests/unit
+
+# Run integration tests only (requires JS runtime + ffmpeg + network)
+uv run pytest tests/integration -m integration
 ```
 
 ## Architecture
 
 ```
 src/ytaug/
-├── main.py         Typer CLI entry point
-├── download.py     yt-dlp wrapper (downloads, system checks)
-├── copy.py         YouTube Data API operations
-├── auth.py         OAuth2 authentication flow
-├── playlist.py     URL parsing and playlist metadata
+├── main.py         Typer CLI entry point (orchestration + user I/O)
+├── download.py     yt-dlp wrapper (system checks, URL validation, metadata, downloads)
 └── exceptions.py   YTAugError hierarchy
 ```
 
 - `main.py` handles all CLI interaction (prompts, messages, exits)
-- Library modules (`download.py`, `auth.py`, `copy.py`, `playlist.py`) are pure logic with no console output
+- `download.py` is pure logic with no console output
 - All library functions raise `YTAugError` subclasses on operational failure
