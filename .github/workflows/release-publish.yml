@@ -1,0 +1,110 @@
+name: Auto release and publish
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write # to create tag and release
+  id-token: write # to get pypi OIDC token (used for trusted publishing)
+
+jobs:
+  create-git-tag:
+    runs-on: ubuntu-latest
+    environment: runner-yt-aug
+
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # fetches full history and tags instead of a single shallow commit
+
+    - name: 🐍 Parse and Evaluate Version State
+      id: version_check
+      run: |
+        python3 -c "
+        import tomllib
+        import subprocess
+        import re
+        import os
+
+        # 1. Read the current configuration version
+        with open('pyproject.toml', 'rb') as f:
+            pyproject = tomllib.load(f)
+        
+        current_version_str = pyproject.get('project', {}).get('version')
+        if not current_version_str:
+            print('❌ Error: No version found in [project] section of pyproject.toml')
+            exit(1)
+
+        try:
+            current_version = tuple(map(int, current_version_str.split('.')))
+        except ValueError:
+            print(f'❌ Error: \"{current_version_str}\" does not match a clean int.int.int schema.')
+            exit(1)
+
+        # 2. Extract existing tags from remote Git index
+        subprocess.run(['git', 'fetch', '--tags'])
+        tags_output = subprocess.run(['git', 'tag'], capture_output=True, text=True).stdout.splitlines()
+
+        tag_versions = []
+        for tag in tags_output:
+            match = re.match(r'^v(\d+)\.(\d+)\.(\d+)$', tag)
+            if match:
+                tag_versions.append(tuple(map(int, match.groups())))
+
+        # 3. Run comparison rules
+        should_tag = False
+        if not tag_versions:
+            print('ℹ️ No existing version tags found. Initializing repository milestone baseline.')
+            should_tag = True
+        else:
+            max_version = max(tag_versions)
+            max_version_str = '.'.join(map(str, max_version))
+            print(f'📊 pyproject.toml: {current_version_str} | Highest Git Tag: v{max_version_str}')
+            
+            if current_version > max_version:
+                should_tag = True
+            else:
+                print('✨ Current version file state is not greater than the highest tag. Skipping tag execution.')
+
+        # 4. Expose results back to GitHub Actions runner memory pipeline
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f'should_tag={str(should_tag).lower()}', file=fh)
+            print(f'tag_name=v{current_version_str}', file=fh)
+        "
+    - name: ⚡ Set up uv and Python Environment
+      if: steps.version_check.outputs.should_tag == 'true'
+      uses: astral-sh/setup-uv@v7
+      with:
+        python-version: '3.13' # Pin your preferred environment runtime version
+        enable-cache: true     # Automatically handles and speeds up consecutive workflow caches
+
+    - name: 📦 Compile wheel and sdist packages (via uv)
+      if: steps.version_check.outputs.should_tag == 'true'
+      run: |
+        # uv manages setuptools dependencies out-of-the-box and generates dist/ items
+        uv build
+
+    - name: 🚀 Create GitHub Release & Tag 
+      if: steps.version_check.outputs.should_tag == 'true'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.version_check.outputs.tag_name }}
+        name: Release ${{ steps.version_check.outputs.tag_name }}
+        body: |
+          Automated distribution release for version ${{ steps.version_check.outputs.tag_name }}.
+        draft: false
+        prerelease: false
+        files: |
+          dist/*.whl
+          dist/*.tar.gz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # - name: 🚀 Publish package distributions to PyPI (Trusted Publishing)
+    #   if: steps.version_check.outputs.should_tag == 'true'
+    #   run: |
+    #     # uv securely detects the GitHub id-token and exchanges it automatically
+    #     uv publish
