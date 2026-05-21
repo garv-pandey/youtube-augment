@@ -3,13 +3,13 @@ from pathlib import Path
 from ytaug.download import (
     download_url_ytdlp,
     has_js_runtime,
-    is_youtube_url,
     get_url_info_ytdlp,
     get_ytdlp_js_runtime_config,
 )
 from ytaug.exceptions import YTAugError
 
 # TODO: rrethink what aspects to unit test for each function
+# TODO: implement tests for custom exceptions in download_url_ytdlp and get_url_info_ytdlp
 
 # TestHasFfmpeg
 # TestGetFfmpegInstallInstructions
