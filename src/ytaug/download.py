@@ -1,7 +1,6 @@
 import shutil
 import platform
 import yt_dlp
-import urllib
 from pathlib import Path
 from ytaug.exceptions import YTAugError
 
@@ -41,6 +40,19 @@ def has_js_runtime() -> bool:
     return False
 
 
+def get_js_runtime_install_instructions() -> str:
+    os_name = platform.system()
+    instructions = {
+        "Windows": "winget install deno  OR  winget install OpenJS.NodeJS \nor check their website: \nhttps://deno.com OR https://nodejs.org",
+        "Darwin": "brew install deno  OR  brew install node \nor check their website: \nhttps://deno.com OR https://nodejs.org",
+        "Linux": "curl -fsSL https://deno.land/install.sh | sh  OR  See https://nodejs.org/en/download/package-manager \nor check their website: \nhttps://deno.com OR https://nodejs.org",
+    }
+    return instructions.get(
+        os_name,
+        "check their website for download instructions \nhttps://deno.com OR  See https://nodejs.org",
+    )
+
+
 def get_ytdlp_js_runtime_config() -> dict:
     """
     Returns a yt-dlp js_runtimes config dict with all found JS runtimes.
@@ -55,35 +67,6 @@ def get_ytdlp_js_runtime_config() -> dict:
         if path:
             config[runtime] = {"path": path}
     return config
-
-
-def get_js_runtime_install_instructions() -> str:
-    os_name = platform.system()
-    instructions = {
-        "Windows": "winget install deno  OR  winget install OpenJS.NodeJS \nor check their website: \nhttps://deno.com OR https://nodejs.org",
-        "Darwin": "brew install deno  OR  brew install node \nor check their website: \nhttps://deno.com OR https://nodejs.org",
-        "Linux": "curl -fsSL https://deno.land/install.sh | sh  OR  See https://nodejs.org/en/download/package-manager \nor check their website: \nhttps://deno.com OR https://nodejs.org",
-    }
-    return instructions.get(
-        os_name,
-        "check their website for download instructions \nhttps://deno.com OR  See https://nodejs.org",
-    )
-
-
-def is_youtube_url(url: str | None) -> bool:
-    if not url:
-        return False
-
-    try:
-        parsed = urllib.parse.urlparse(url)
-    except Exception:
-        return False
-
-    domain = parsed.netloc or parsed.path.split("/")[0]
-    domain = domain.lower()
-    domain = domain.removeprefix("www.")
-
-    return domain in ("youtube.com", "m.youtube.com", "music.youtube.com", "youtu.be")
 
 
 def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
@@ -114,6 +97,13 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
     }
 
     try:
+        # https://www.youtube.com/watch?v=hv8L21sug98
+        # https://www.youtube.com/playlist?list=PLD0UJYil0pcdvbPlFbxrCbymz33en6ICB
+        # https://www.youtube.com/watch?v=hv8L21sug98&list=PLD0UJYil0pcdvbPlFbxrCbymz33en6ICB&index=6&t=9921s
+        # for video media_type: video
+        # for playlist _type: playlist
+        # for video in playlist _type: url, id:playlist_id, title:playlist_title, downloads playlist
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
