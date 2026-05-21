@@ -1,5 +1,8 @@
 import urllib
 
+# TODO: check how does yt_dlp handles infinite mix palylists whose id starts with RD
+# TODO: check how does yt_dlp handles season based playlist url
+
 
 def is_youtube_url(url: str | None) -> bool:
     """
