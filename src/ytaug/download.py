@@ -1,9 +1,11 @@
 import shutil
 import platform
 import yt_dlp
+import json
 from pathlib import Path
 from ytaug.exceptions import YTAugError
 
+# TODO: turn any valid youtube domain url in to standard video or playlist url
 # TODO: handle playlist does not exist:"https://www.youtube.com/playlist?list=PLwivhteH3vK_S0yV2w3gCh_zM-2S_3N-Z"
 # TODO: handle no internet connection error
 # TODO: handle private video/playlist error
@@ -97,9 +99,6 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
     }
 
     try:
-        # https://www.youtube.com/watch?v=hv8L21sug98
-        # https://www.youtube.com/playlist?list=PLD0UJYil0pcdvbPlFbxrCbymz33en6ICB
-        # https://www.youtube.com/watch?v=hv8L21sug98&list=PLD0UJYil0pcdvbPlFbxrCbymz33en6ICB&index=6&t=9921s
         # for video media_type: video
         # for playlist _type: playlist
         # for video in playlist _type: url, id:playlist_id, title:playlist_title, downloads playlist
@@ -107,10 +106,13 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
-    except yt_dlp.utils.DownloadError as e:
-        if "Error 400" in str(e):
-            raise YTAugError("Provided video/playlist URL does not exist on youtube")
+        with open("temp.json", "w") as f:
+            json.dump(obj=info, fp=f, indent=4)
 
+    except yt_dlp.utils.DownloadError as e:
+        # if "Error 400" in str(e):
+        #     raise YTAugError("Provided video/playlist URL does not exist on youtube")
+        #
         # if its not Error 400:
         raise Exception("Unexpected error in get_url_info_ytdlp") from e
 

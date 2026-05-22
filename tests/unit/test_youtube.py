@@ -1,5 +1,19 @@
 import pytest
 
+from tests.conftest import (
+    YT_PLAYLISTS,
+    YT_SEASON_PLAYLISTS,
+    YT_VIDEOS,
+    YT_VIDEO_IN_MIX_PLAYLISTS,
+    YT_VIDEO_IN_PLAYLISTS,
+    YT_VIDEO_IN_SEASON_PLAYLISTS,
+    YTM_MIX_PLAYLISTS,
+    YTM_PLAYLISTS,
+    YTM_VIDEOS,
+    YTM_VIDEO_IN_MIX_PLAYLISTS,
+    YTM_VIDEO_IN_PLAYLISTS,
+)
+
 from ytaug.youtube import (
     is_youtube_url,
     is_youtube_video,
@@ -10,8 +24,64 @@ from ytaug.youtube import (
     get_youtube_playlist_url,
 )
 
-# TODO: find a better way to reuse urls instead of copy pasting
-# TODO: add youtube shorts url tests as well
+# --- Composed lists from conftest data ---
+
+_URLS_WITH_V_ID = [
+    e
+    for e in (
+        YT_VIDEOS
+        + YT_VIDEO_IN_PLAYLISTS
+        + YT_VIDEO_IN_MIX_PLAYLISTS
+        + YTM_VIDEOS
+        + YTM_VIDEO_IN_PLAYLISTS
+        + YTM_VIDEO_IN_MIX_PLAYLISTS
+        + YT_VIDEO_IN_SEASON_PLAYLISTS
+    )
+    if "watch_videos" not in e["url"]
+]
+
+_URLS_WITHOUT_V_ID = (
+    YT_PLAYLISTS
+    + YT_SEASON_PLAYLISTS
+    + [e for e in YT_VIDEO_IN_SEASON_PLAYLISTS if "watch_videos" in e["url"]]
+    + YTM_PLAYLISTS
+    + YTM_MIX_PLAYLISTS
+)
+
+_EDGE_NO_ID = [{"url": None}, {"url": ""}]
+
+_PURE_PLAYLISTS = YT_PLAYLISTS + YTM_PLAYLISTS + YTM_MIX_PLAYLISTS
+
+_NOT_PURE_PLAYLISTS = (
+    YT_VIDEOS
+    + YT_VIDEO_IN_PLAYLISTS
+    + YT_VIDEO_IN_MIX_PLAYLISTS
+    + YT_SEASON_PLAYLISTS
+    + YT_VIDEO_IN_SEASON_PLAYLISTS
+    + YTM_VIDEOS
+    + YTM_VIDEO_IN_PLAYLISTS
+    + YTM_VIDEO_IN_MIX_PLAYLISTS
+)
+
+_URLS_WITH_LIST_ID = (
+    YT_PLAYLISTS
+    + YT_VIDEO_IN_PLAYLISTS
+    + YT_VIDEO_IN_MIX_PLAYLISTS
+    + [e for e in YT_VIDEO_IN_SEASON_PLAYLISTS if "watch_videos" not in e["url"]]
+    + YTM_PLAYLISTS
+    + YTM_VIDEO_IN_PLAYLISTS
+    + YTM_MIX_PLAYLISTS
+    + YTM_VIDEO_IN_MIX_PLAYLISTS
+)
+
+_URLS_WITHOUT_LIST_ID = (
+    YT_VIDEOS
+    + YT_SEASON_PLAYLISTS
+    + [e for e in YT_VIDEO_IN_SEASON_PLAYLISTS if "watch_videos" in e["url"]]
+    + YTM_VIDEOS
+)
+
+_EDGE_NO_LIST = [{"url": None}, {"url": ""}]
 
 
 @pytest.mark.unit
@@ -55,155 +125,46 @@ class TestIsYoutubeUrl:
 
 @pytest.mark.unit
 class TestIsYoutubeVideo:
-    @pytest.mark.parametrize(
-        "url",
-        [
-            "https://www.youtube.com/watch?v=r-eKJIJXaqE",  # yt vid
-            "https://www.youtube.com/watch?v=r-eKJIJXaqE&list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8&index=12"  # yt vid in playlist
-            "https://www.youtube.com/watch?v=r-eKJIJXaqE&list=RDEMUQ4DWIcNHr2I0idrfXNfEw&start_radio=1",  # yt vid in mix playlist
-            "https://music.youtube.com/watch?v=r-eKJIJXaqE",  # ytm vid
-            "https://music.youtube.com/watch?v=r-eKJIJXaqE&list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",  # ytm vid in playlist
-            "https://music.youtube.com/watch?v=vMFnGUXVMZY&list=RDCLAK5uy_n38QBvlkETFzw_TX8Z7wfA733kKr2vo0o",  # ytm vid in mix/recomended playlist
-        ],
-    )
-    def test_valid_youtube_video_urls(self, url):
-        assert is_youtube_video(url) is True
+    @pytest.mark.parametrize("entry", _URLS_WITH_V_ID)
+    def test_valid_youtube_video_urls(self, entry):
+        assert is_youtube_video(entry["url"]) is True
 
-    @pytest.mark.parametrize(
-        "url",
-        [
-            "https://www.youtube.com/playlist?list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",  # yt playlist
-            "https://music.youtube.com/playlist?list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",  # ytm playlist
-            "https://music.youtube.com/playlist?list=RDCLAK5uy_n38QBvlkETFzw_TX8Z7wfA733kKr2vo0o",  # ytm mix/recomended playlist
-            "",
-            None,
-        ],
-    )
-    def test_invalid_youtube_vidoe_urls(self, url):
-        assert is_youtube_video(url) is False
+    @pytest.mark.parametrize("entry", [*_URLS_WITHOUT_V_ID, *_EDGE_NO_ID])
+    def test_invalid_youtube_vidoe_urls(self, entry):
+        assert is_youtube_video(entry["url"]) is False
 
 
 @pytest.mark.unit
 class TestIsYoutubePlaylist:
-    @pytest.mark.parametrize(
-        "url",
-        [
-            "https://www.youtube.com/playlist?list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",  # yt playlist
-            "https://music.youtube.com/playlist?list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",  # ytm playlist
-            "https://music.youtube.com/playlist?list=RDCLAK5uy_n38QBvlkETFzw_TX8Z7wfA733kKr2vo0o",  # ytm mix/recomended playlist
-        ],
-    )
-    def test_valid_playlist_url(self, url):
-        assert is_youtube_playlist(url) is True
+    @pytest.mark.parametrize("entry", _PURE_PLAYLISTS)
+    def test_valid_playlist_url(self, entry):
+        assert is_youtube_playlist(entry["url"]) is True
 
-    @pytest.mark.parametrize(
-        "url",
-        [
-            "https://www.youtube.com/watch?v=r-eKJIJXaqE",  # yt vid
-            "https://www.youtube.com/watch?v=r-eKJIJXaqE&list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8&index=12",  # yt vid in playlist
-            "https://www.youtube.com/watch?v=r-eKJIJXaqE&list=RDEMUQ4DWIcNHr2I0idrfXNfEw&start_radio=1",  # yt vid in mix playlist
-            "https://music.youtube.com/watch?v=r-eKJIJXaqE",  # ytm vid
-            "https://music.youtube.com/watch?v=r-eKJIJXaqE&list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",  # ytm vid in playlist
-            "https://music.youtube.com/watch?v=vMFnGUXVMZY&list=RDCLAK5uy_n38QBvlkETFzw_TX8Z7wfA733kKr2vo0o",  # ytm vid in mix/recomended playlist
-            "",
-            None,
-        ],
-    )
-    def test_invalid_playlist_url(self, url):
-        assert is_youtube_playlist(url) is False
+    @pytest.mark.parametrize("entry", [*_NOT_PURE_PLAYLISTS, *_EDGE_NO_ID])
+    def test_invalid_playlist_url(self, entry):
+        assert is_youtube_playlist(entry["url"]) is False
 
 
 @pytest.mark.unit
 class TestGetYoutubeVideoId:
-    @pytest.mark.parametrize(
-        "url, expected",
-        [
-            ("https://www.youtube.com/watch?v=r-eKJIJXaqE", "r-eKJIJXaqE"),  # yt vid
-            (
-                "https://www.youtube.com/watch?v=r-eKJIJXaqE&list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8&index=12",
-                "r-eKJIJXaqE",
-            ),  # yt vid in playlist
-            (
-                "https://www.youtube.com/watch?v=r-eKJIJXaqE&list=RDEMUQ4DWIcNHr2I0idrfXNfEw&start_radio=1",
-                "r-eKJIJXaqE",
-            ),  # yt vid in mix playlist
-            ("https://music.youtube.com/watch?v=r-eKJIJXaqE", "r-eKJIJXaqE"),  # ytm vid
-            (
-                "https://music.youtube.com/watch?v=r-eKJIJXaqE&list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",
-                "r-eKJIJXaqE",
-            ),  # ytm vid in playlist
-            (
-                "https://music.youtube.com/watch?v=vMFnGUXVMZY&list=RDCLAK5uy_n38QBvlkETFzw_TX8Z7wfA733kKr2vo0o",
-                "vMFnGUXVMZY",
-            ),  # ytm vid in mix/recomended playlist
-        ],
-    )
-    def test_returns_video_id(self, url, expected):
-        assert get_youtube_video_id(url) == expected
+    @pytest.mark.parametrize("entry", _URLS_WITH_V_ID)
+    def test_returns_video_id(self, entry):
+        assert get_youtube_video_id(entry["url"]) == entry["video_id"]
 
-    @pytest.mark.parametrize(
-        "url",
-        [
-            "https://www.youtube.com/playlist?list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",  # yt playlist
-            "https://music.youtube.com/playlist?list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",  # ytm playlist
-            "https://music.youtube.com/playlist?list=RDCLAK5uy_n38QBvlkETFzw_TX8Z7wfA733kKr2vo0o",  # ytm mix/recomended playlist
-            None,
-            "",
-        ],
-    )
-    def test_returns_none_when_no_video_id(self, url):
-        assert get_youtube_video_id(url) is None
+    @pytest.mark.parametrize("entry", [*_URLS_WITHOUT_V_ID, *_EDGE_NO_ID])
+    def test_returns_none_when_no_video_id(self, entry):
+        assert get_youtube_video_id(entry["url"]) is None
 
 
 @pytest.mark.unit
 class TestGetYoutubePlaylistId:
-    @pytest.mark.parametrize(
-        "url, expected",
-        [
-            (
-                "https://www.youtube.com/playlist?list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",
-                "PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",
-            ),  # yt playlist
-            (
-                "https://www.youtube.com/watch?v=r-eKJIJXaqE&list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8&index=12",
-                "PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",
-            ),  # yt vid in playlist
-            (
-                "https://www.youtube.com/watch?v=r-eKJIJXaqE&list=RDEMUQ4DWIcNHr2I0idrfXNfEw&start_radio=1",
-                "RDEMUQ4DWIcNHr2I0idrfXNfEw",
-            ),  # yt vid in mix playlist
-            (
-                "https://music.youtube.com/playlist?list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",
-                "PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",
-            ),  # ytm playlist
-            (
-                "https://music.youtube.com/watch?v=r-eKJIJXaqE&list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",
-                "PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",
-            ),  # ytm vid in playlist
-            (
-                "https://music.youtube.com/playlist?list=RDCLAK5uy_n38QBvlkETFzw_TX8Z7wfA733kKr2vo0o",
-                "RDCLAK5uy_n38QBvlkETFzw_TX8Z7wfA733kKr2vo0o",
-            ),  # ytm mix playlist
-            (
-                "https://music.youtube.com/watch?v=vMFnGUXVMZY&list=RDCLAK5uy_n38QBvlkETFzw_TX8Z7wfA733kKr2vo0o",
-                "RDCLAK5uy_n38QBvlkETFzw_TX8Z7wfA733kKr2vo0o",
-            ),  # ytm vid in mix/recomended playlist
-        ],
-    )
-    def test_returns_playlist_id(self, url, expected):
-        assert get_youtube_playlist_id(url) == expected
+    @pytest.mark.parametrize("entry", _URLS_WITH_LIST_ID)
+    def test_returns_playlist_id(self, entry):
+        assert get_youtube_playlist_id(entry["url"]) == entry["playlist_id"]
 
-    @pytest.mark.parametrize(
-        "url",
-        [
-            "https://www.youtube.com/watch?v=r-eKJIJXaqE",  # yt vid
-            "https://music.youtube.com/watch?v=r-eKJIJXaqE",  # ytm vid
-            None,
-            "",
-        ],
-    )
-    def test_returns_none_when_no_playlist_id(self, url):
-        assert get_youtube_playlist_id(url) is None
+    @pytest.mark.parametrize("entry", [*_URLS_WITHOUT_LIST_ID, *_EDGE_NO_LIST])
+    def test_returns_none_when_no_playlist_id(self, entry):
+        assert get_youtube_playlist_id(entry["url"]) is None
 
 
 @pytest.mark.unit
@@ -238,16 +199,3 @@ class TestGetYoutubePlaylistUrl:
     )
     def test_returns_url(self, id, expected):
         assert get_youtube_playlist_url(id) == expected
-
-
-# mix video in paylist yt : https://www.youtube.com/watch?v=r-eKJIJXaqE&list=RDEMUQ4DWIcNHr2I0idrfXNfEw&start_radio=1
-# mix playlist yt: cant get
-# playlist yt: https://www.youtube.com/playlist?list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8
-# video yt: https://www.youtube.com/watch?v=r-eKJIJXaqE
-# video ytm: https://music.youtube.com/watch?v=r-eKJIJXaqE
-# playlist ytm: https://music.youtube.com/playlist?list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8
-# video in paylist ytm: https://music.youtube.com/watch?v=r-eKJIJXaqE&list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8
-# recom playlist ytm: https://music.youtube.com/playlist?list=RDCLAK5uy_n38QBvlkETFzw_TX8Z7wfA733kKr2vo0o
-# recom video in playlist ytm: https://music.youtube.com/watch?v=vMFnGUXVMZY&list=RDCLAK5uy_n38QBvlkETFzw_TX8Z7wfA733kKr2vo0o
-# mix/radio playlists contains RD before the playlist id
-# special browse/ abstract of ytm for playlists

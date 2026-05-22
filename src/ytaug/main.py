@@ -11,8 +11,8 @@ from ytaug.download import (
     get_ytdlp_js_runtime_config,
     get_url_info_ytdlp,
     download_url_ytdlp,
-    is_youtube_url,
 )
+from ytaug.youtube import is_youtube_url
 from ytaug.exceptions import YTAugError
 
 # TODO: save unhandled exceptions in log

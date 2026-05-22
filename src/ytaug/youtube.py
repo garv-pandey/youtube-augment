@@ -1,5 +1,8 @@
 import urllib
 
+from tests.conftest import YT_VIDEOS
+import ytaug
+
 # TODO: check how does yt_dlp handles infinite mix palylists whose id starts with RD
 # TODO: check how does yt_dlp handles season based playlist url
 
@@ -19,6 +22,7 @@ def is_youtube_url(url: str | None) -> bool:
         return False
 
     parsed = urllib.parse.urlparse(url)
+    print(parsed)
     domain = parsed.netloc or parsed.path.split("/")[0]
     domain = domain.lower()
     domain = domain.removeprefix("www.")
@@ -155,3 +159,8 @@ def get_youtube_playlist_url(id: str) -> str:
         A full YouTube playlist URL string.
     """
     return f"https://www.youtube.com/playlist?list={id}"
+
+if __name__ == "__main__":
+    from ytaug.tests.conftest.py import *
+    url = YT_VIDEOS[0].["url"]
+    print(url)

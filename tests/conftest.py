@@ -246,3 +246,22 @@ YTM_VIDEO_IN_MIX_PLAYLISTS = [
         "playlist_id": "RDTMAK5uy_n_5IN6hzAOwdCnM8D8rzrs3vDl12UcZpA",
     },
 ]
+
+EDGE_URLS = [
+    "",  # blank url
+    "https://www.youtube.com/watch?v="  # no video_id, ytdlp no errors
+    "https://music.youtube.com/watch?v="  # no video_id, yt_dlp.utils.DownloadError: ERROR: Unsupported URL: https://music.youtube.com/watch?v=
+    "https://www.youtube.com/playlist?list=",  # no playlist_id, yt_dlp.utils.DownloadError: ERROR: [generic] Unable to download webpage: HTTP Error 404: Not Found (caused by <HTTPError 404: Not Found>)
+    "https://music.youtube.com/playlist?list=",  # no playlist_id, yt_dlp.utils.DownloadError: ERROR: Unsupported URL: https://music.youtube.com/playlist?list=
+    "https://www.youtube.com/watch?v=&list=&index=2&t=36s",  # no video_id and playlist_id
+    "https://www.youtube.com/watch?v=&list=PLQSoWXSpjA39U94TANpW67fxfYhm5CFFT&index=2&t=36s",  # no video_id, yt_dlp.utils.DownloadError: ERROR: Unsupported URL: https://music.youtube.com/playlist?list=
+    "https://www.youtube.com/watch?v=0PAEqgfAts4&list=&index=2&t=36s",  # no playlist_id, works properly to get video
+    "https://www.youtube.com/watch?v=00000000000",  # video_id, yt: not found (for any length of 0), yt_dlp.utils.DownloadError: ERROR: [youtube] 00000000000: Video unavailable
+    "https://www.youtube.com/watch?v=0PAEqgfAts",  # video_id length < 11, yt_dlp.utils.DownloadError: ERROR: [youtube:truncated_id] 0PAEqgfAts: Incomplete YouTube ID 0PAEqgfAts. URL https://www.youtube.com/watch?v=0PAEqgfAts looks truncated.
+    "https://www.youtube.com/watch?v=0PAEqgfAts46969",  # video_id length > 11, works fine to get the video
+    "https://www.youtube.com/playlist?list=0000000000000000000000000000000000",  # yt: all 0 id playlist leads back to home page, yt_dlp.utils.DownloadError: ERROR: [youtube:tab] 0000000000000000000000000000000000: Unable to download API page: HTTP Error 400: Bad Request (caused by <HTTPError 400: Bad Request>)
+    "https://www.youtube.com/playlist?list=PLlAZKtV48pBbC4nlImTJtM7TVGl0aEolC",  # valid private playlist, yt_dlp.utils.DownloadError: ERROR: [youtube:tab] PLlAZKtV48pBbC4nlImTJtM7TVGl0aEolC: YouTube said: The playlist does not exist.
+    "https://www.youtube.com/watch?v=S5jROs3A6F8&list=PLlAZKtV48pBbC4nlImTJtM7TVGl0aEolC&index=2",  # public video in valid private playlist, ytdlp no error but no info
+    "https://www.youtube.com/watch?v=HkeLXf7sYGM",  # valid private video, yt_dlp.utils.DownloadError: ERROR: [youtube] HkeLXf7sYGM: Private video. Sign in if you've been granted access to this video. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
+    "https://www.youtube.com/watch?v=HkeLXf7sYGM&list=PLlAZKtV48pBbC4nlImTJtM7TVGl0aEolC&index=6",  # valid private video in private playlist, ytdlp no error but no info
+]
