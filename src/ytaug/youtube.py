@@ -1,7 +1,6 @@
+from typing import Annotated
 import urllib.parse
-from Annotated import Optional
 
-from tests.conftest import YT_VIDEOS
 
 # TODO: check how does yt_dlp handles infinite mix palylists whose id starts with RD
 # TODO: check how does yt_dlp handles season based playlist url
@@ -38,8 +37,47 @@ def is_youtube_domain(url: str | None) -> bool:
     return domain in ("youtube.com", "m.youtube.com", "music.youtube.com", "youtu.be")
 
 
-def extract_youtube_video_and_playlist_id(url: str) -> str | None:
-    pass
+def extract_youtube_video_and_playlist_id(
+    url: str,
+) -> dict[str, str | None]:
+    result: dict[str, str | None] = {"video_id": None, "playlist_id": None}
+    parsed = urllib.parse.urlparse(url)
+
+    # all season based playlist urls contain /show
+    if parsed.path.startswith("/show"):
+        # path='/show/VLPLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY' -> PLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY
+        val = parsed.path.split("/")[-1]
+        val = val.removeprefix("VL")
+        result["playlist_id"] = val
+
+    # only few videos in season based playlist have weird url,
+    # those videos in playlist contains /watch_videos instead of /watch found in regular urls
+    elif parsed.path.startswith("/watch_videos"):
+        # query='video_ids=yRmOWcWdQAo%2ClsbcN9-jU1Y%2ChRSGxw2AQnk%2C1BVJzaXv3rk%2CQ-nWA0WeF98&type=0&title=Roman+History+%E2%80%A2+Top+episodes+for+you'
+        # -> yRmOWcWdQAo
+        val = parsed.query.split("%", 1)[0]
+        val = val.removeprefix("video_ids=")
+        print(val)
+        result["video_id"] = val
+
+    # if its regular playlist url
+    elif parsed.path.startswith("/playlist"):
+        print(parsed)
+        val = parsed.query.removeprefix("list=")
+
+        # mix playlists are unviewable, their ids start with RD
+        if val.startswith("RD"):
+            print("mix playlists are infinite and cannot be downloaded")
+            return result
+
+        print(val)
+        result["playlist_id"] = val
+
+    # if its video, video in playlist and some videos in season based playlist
+    else:
+        pass
+
+    return result
 
 
 def is_youtube_video(url: str | None) -> bool:

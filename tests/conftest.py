@@ -305,13 +305,13 @@ EDGE_URLS = [
         "playlist_id": None,
     },
     {
-        # yt: all 0 id playlist leads back to home page, yt_dlp.utils.DownloadError: ERROR: [youtube:tab] 0000000000000000000000000000000000: Unable to download API page: HTTP Error 400: Bad Request (caused by <HTTPError 400: Bad Request>)
+        # ivalid playlist_id all 0,youtube leads back to home page, yt_dlp.utils.DownloadError: ERROR: [youtube:tab] 0000000000000000000000000000000000: Unable to download API page: HTTP Error 400: Bad Request (caused by <HTTPError 400: Bad Request>)
         "url": "https://www.youtube.com/playlist?list=0000000000000000000000000000000000",
         "video_id": None,
         "playlist_id": "0000000000000000000000000000000000",
     },
     {
-        # valid private playlist, yt_dlp.utils.DownloadError: ERROR: [youtube:tab] PLlAZKtV48pBbC4nlImTJtM7TVGl0aEolC: YouTube said: The playlist does not exist.
+        # valid url of private playlist, yt_dlp.utils.DownloadError: ERROR: [youtube:tab] PLlAZKtV48pBbC4nlImTJtM7TVGl0aEolC: YouTube said: The playlist does not exist.
         "url": "https://www.youtube.com/playlist?list=PLlAZKtV48pBbC4nlImTJtM7TVGl0aEolC",
         "video_id": None,
         "playlist_id": "PLlAZKtV48pBbC4nlImTJtM7TVGl0aEolC",

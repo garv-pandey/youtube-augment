@@ -12,16 +12,20 @@ from tests.conftest import (
     YTM_MIX_PLAYLISTS,
     YTM_VIDEO_IN_MIX_PLAYLISTS,
 )
-from ytaug.youtube import is_youtube_url
+from ytaug.youtube import is_youtube_domain, extract_youtube_video_and_playlist_id
 
 if __name__ == "__main__":
     for obj in [
+        YT_VIDEOS[0],
+        YT_PLAYLISTS[0],
+        YT_VIDEO_IN_PLAYLISTS[0],
+        YT_VIDEO_IN_MIX_PLAYLISTS[0],
+        *YT_SEASON_PLAYLISTS,
+        *YT_VIDEO_IN_SEASON_PLAYLISTS,
         YTM_VIDEOS[0],
         YTM_PLAYLISTS[0],
         YTM_VIDEO_IN_PLAYLISTS[0],
         YTM_MIX_PLAYLISTS[0],
         YTM_VIDEO_IN_MIX_PLAYLISTS[0],
     ]:
-        url = obj["url"]
-        parsed_url = urllib.parse.urlparse(url)
-        print(parsed_url)
+        extract_youtube_video_and_playlist_id(obj["url"])
