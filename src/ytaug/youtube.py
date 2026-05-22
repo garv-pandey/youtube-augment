@@ -1,13 +1,22 @@
-import urllib
+import urllib.parse
+from Annotated import Optional
 
 from tests.conftest import YT_VIDEOS
-import ytaug
 
 # TODO: check how does yt_dlp handles infinite mix palylists whose id starts with RD
 # TODO: check how does yt_dlp handles season based playlist url
 
+# yt_video : path = /watch, query = video id
+# yt_palylist: path = /playlist, query = playlist id
+# yt video in playlist : path =  /watch, query = video id
+# yt video in mix playlist: path = /watch, query = video id
+# yt season playlist: path = /show/playlist_id
+# yt video in season playlist: path = /watch_videos, query = video_ids=[video's id]%...
+# for all ytm urls, path = /watch for videos and video in playlist, /query is id of video
+# for all ytm urls, path = /playlist for all mix and regular playlist, /querys in id of playlist
 
-def is_youtube_url(url: str | None) -> bool:
+
+def is_youtube_domain(url: str | None) -> bool:
     """
     Check if a URL belongs to a YouTube domain.
 
@@ -22,12 +31,15 @@ def is_youtube_url(url: str | None) -> bool:
         return False
 
     parsed = urllib.parse.urlparse(url)
-    print(parsed)
     domain = parsed.netloc or parsed.path.split("/")[0]
     domain = domain.lower()
     domain = domain.removeprefix("www.")
 
     return domain in ("youtube.com", "m.youtube.com", "music.youtube.com", "youtu.be")
+
+
+def extract_youtube_video_and_playlist_id(url: str) -> str | None:
+    pass
 
 
 def is_youtube_video(url: str | None) -> bool:
@@ -159,8 +171,3 @@ def get_youtube_playlist_url(id: str) -> str:
         A full YouTube playlist URL string.
     """
     return f"https://www.youtube.com/playlist?list={id}"
-
-if __name__ == "__main__":
-    from ytaug.tests.conftest.py import *
-    url = YT_VIDEOS[0].["url"]
-    print(url)

@@ -12,7 +12,7 @@ from ytaug.download import (
     get_url_info_ytdlp,
     download_url_ytdlp,
 )
-from ytaug.youtube import is_youtube_url
+from ytaug.youtube import is_youtube_domain
 from ytaug.exceptions import YTAugError
 
 # TODO: save unhandled exceptions in log
@@ -42,7 +42,7 @@ def download(
         typer.echo(get_ffmpeg_install_instructions())
         raise typer.Exit(1)
 
-    if not is_youtube_url(url):
+    if not is_youtube_domain(url):
         typer.echo("Provided URL is not a valid youtube domain's URL")
         raise typer.Exit(1)
 
