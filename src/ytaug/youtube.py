@@ -42,8 +42,12 @@ def extract_youtube_video_and_playlist_id(
 ) -> dict[str, str | None]:
     result: dict[str, str | None] = {"video_id": None, "playlist_id": None}
     parsed = urllib.parse.urlparse(url)
+    """
+    for pure playlist url, extract playlist_id
+    for pure video and video in playlist url, extract only video_id
+    """
 
-    # all season based playlist urls contain /show
+    # all season based playlist urls
     if parsed.path.startswith("/show"):
         # path='/show/VLPLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY' -> PLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY
         val = parsed.path.split("/")[-1]
@@ -51,31 +55,39 @@ def extract_youtube_video_and_playlist_id(
         result["playlist_id"] = val
 
     # only few videos in season based playlist have weird url,
-    # those videos in playlist contains /watch_videos instead of /watch found in regular urls
+    # those videos contain 'path=/watch_videos', unique from all
     elif parsed.path.startswith("/watch_videos"):
         # query='video_ids=yRmOWcWdQAo%2ClsbcN9-jU1Y%2ChRSGxw2AQnk%2C1BVJzaXv3rk%2CQ-nWA0WeF98&type=0&title=Roman+History+%E2%80%A2+Top+episodes+for+you'
         # -> yRmOWcWdQAo
         val = parsed.query.split("%", 1)[0]
         val = val.removeprefix("video_ids=")
-        print(val)
         result["video_id"] = val
 
-    # if its regular playlist url
+    # regular playlist url, path='/playlist'
     elif parsed.path.startswith("/playlist"):
-        print(parsed)
+        # query='list=PLMlRYqqqM5rrjeaJuVaC6MWN7e7fSXGJt' -> PLMlRYqqqM5rrjeaJuVaC6MWN7e7fSXGJt
         val = parsed.query.removeprefix("list=")
 
-        # mix playlists are unviewable, their ids start with RD
+        # mix playlists are infinite and unviewable on youtube
+        # dont support download for them
+        # their ids start with RD
         if val.startswith("RD"):
+            print(parsed)
             print("mix playlists are infinite and cannot be downloaded")
             return result
 
-        print(val)
         result["playlist_id"] = val
+        print(val)
 
-    # if its video, video in playlist and some videos in season based playlist
+    # video, video in playlist 'path = /watch'
     else:
-        pass
+        # query='v=kPkT0jMjEu8&list=RDATmba11fjz9y3mcE' -> RDATmba11fjz9y3mcE
+
+        val = parsed.query
+        val = val.split("&", 1)[0]
+        val = val.removeprefix("v=")
+
+        result["video_id"] = val
 
     return result
 

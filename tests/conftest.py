@@ -63,7 +63,7 @@ YT_VIDEO_IN_PLAYLISTS = [
     },
 ]
 
-# cant get solo link for mix playlists
+# youtube does not allow pure view of mix playlists ('RD' and 'TLGG')
 # YT_MIX_PLAYLISTS = []
 
 YT_VIDEO_IN_MIX_PLAYLISTS = [
@@ -125,7 +125,7 @@ YT_VIDEO_IN_SEASON_PLAYLISTS = [
         # oversiplified punic war 1 part 2 in top episodes
         "url": "https://www.youtube.com/watch_videos?video_ids=yRmOWcWdQAo%2ClsbcN9-jU1Y%2ChRSGxw2AQnk%2C1BVJzaXv3rk%2CQ-nWA0WeF98&type=0&title=Roman+History+%E2%80%A2+Top+episodes+for+you",
         "video_id": "yRmOWcWdQAo",
-        "playlist_id": "PLQw_XrMliWVa1cUis273NsyXIvH5DW6o2",
+        "playlist_id": None,
     },
     {
         # oversiplified punic war 1 part 2 in all episodes
@@ -143,7 +143,7 @@ YT_VIDEO_IN_SEASON_PLAYLISTS = [
         # oversiplified world war 1 part 2 in top episodes
         "url": "https://www.youtube.com/watch_videos?video_ids=dHSQAEam2yc%2CI79TpDe3t2g%2COIYy32RuHao%2CMun1dKkc_As%2Cfo2Rb9h788s%2C_uk_6vfqwTA&type=0&title=World+Wars+%E2%80%A2+Top+episodes+for+you",
         "video_id": "Mun1dKkc_As",
-        "playlist_id": "PLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY",
+        "playlist_id": None,
     },
     {
         # oversiplified world war 1 part 2 in all episodes
@@ -246,6 +246,12 @@ YTM_VIDEO_IN_MIX_PLAYLISTS = [
         "url": "https://music.youtube.com/watch?v=pWO718iy5mY&list=RDTMAK5uy_n_5IN6hzAOwdCnM8D8rzrs3vDl12UcZpA",
         "video_id": "pWO718iy5mY",
         "playlist_id": "RDTMAK5uy_n_5IN6hzAOwdCnM8D8rzrs3vDl12UcZpA",
+    },
+    {
+        # shared mix ('RD' playlists) convert to 'TLGG' playlist (still a mix)
+        "url": "https://music.youtube.com/watch?v=mewl5TnLRRE&list=TLGGZzPOc7XL31kyMzA1MjAyNg",
+        "video_id": "mewl5TnLRRE",
+        "playlist_id": "TLGGZzPOc7XL31kyMzA1MjAyNg",
     },
 ]
 
