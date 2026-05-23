@@ -12,7 +12,7 @@ from tests.conftest import (
     YTM_MIX_PLAYLISTS,
     YTM_VIDEO_IN_MIX_PLAYLISTS,
 )
-from ytaug.youtube import is_youtube_domain, extract_youtube_video_or_playlist_id
+from ytaug.youtube import is_youtube_domain, extract_youtube_video_and_playlist_id
 
 if __name__ == "__main__":
     for obj in [
@@ -28,4 +28,4 @@ if __name__ == "__main__":
         YTM_MIX_PLAYLISTS[0],
         YTM_VIDEO_IN_MIX_PLAYLISTS[0],
     ]:
-        extract_youtube_video_or_playlist_id(obj["url"])
+        extract_youtube_video_and_playlist_id(obj["url"])
