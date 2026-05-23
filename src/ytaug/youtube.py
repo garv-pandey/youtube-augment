@@ -30,12 +30,16 @@ def is_youtube_domain(url: str | None) -> bool:
 
 def extract_youtube_video_or_playlist_id(
     url: str,
-) -> dict[str, str | None]:
-    result: dict[str, str | None] = {"video_id": None, "playlist_id": None}
+) -> dict[str, str]:
+    result = {}
     parsed = urllib.parse.urlparse(url)
     """
-    for playlist only urls, extract playlist_id
-    for video and 'video in playlist' urls, extract only video_id
+    if video_id is found, result contains it.
+    else if playlist_id is found, result contains it.
+    else empty dict is returned
+
+    for playlist only urls, extracts playlist_id
+    for video and 'video in playlist' urls, extracts only video_id
     """
 
     # season based playlist urls, 'path=/show'
@@ -78,8 +82,9 @@ def extract_youtube_video_or_playlist_id(
 
         result["video_id"] = val
 
-    else:
-        raise YTAugError(f"Unsupported url found: \n{url}")
+    # else:
+    #     raise YTAugError(f"Unsupported url found: \n{url}")
+    # raise in main on None values
 
     return result
 

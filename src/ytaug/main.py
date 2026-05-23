@@ -12,7 +12,12 @@ from ytaug.download import (
     get_url_info_ytdlp,
     download_url_ytdlp,
 )
-from ytaug.youtube import is_youtube_domain
+from ytaug.youtube import (
+    get_youtube_playlist_url,
+    get_youtube_video_url,
+    is_youtube_domain,
+    extract_youtube_video_or_playlist_id,
+)
 from ytaug.exceptions import YTAugError
 
 # TODO: save unhandled exceptions in log
@@ -47,9 +52,18 @@ def download(
         raise typer.Exit(1)
 
     try:
+        ids = extract_youtube_video_or_playlist_id(url=url)
+
+        if "video_id" in ids:
+            download_url = get_youtube_video_url(ids["video_id"])
+        elif "playlist_id" in ids:
+            download_url = get_youtube_playlist_url(ids["playlist_id"])
+        else:
+            raise YTAugError(f"Unsupported url: {url}")
+
         # confirm info of video/playlist and download location
         info = get_url_info_ytdlp(
-            url=url, js_runtime_config=get_ytdlp_js_runtime_config()
+            url=download_url, js_runtime_config=get_ytdlp_js_runtime_config()
         )
 
         if info["type"] == "playlist":
