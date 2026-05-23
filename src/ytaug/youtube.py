@@ -1,5 +1,6 @@
 from typing import Annotated
 import urllib.parse
+from ytaug.exceptions import YTAugError
 
 
 # TODO: check how does yt_dlp handles infinite mix palylists whose id starts with RD
@@ -47,40 +48,38 @@ def extract_youtube_video_and_playlist_id(
     for pure video and video in playlist url, extract only video_id
     """
 
-    # all season based playlist urls
+    # season based playlist urls, 'path=/show'
     if parsed.path.startswith("/show"):
         # path='/show/VLPLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY' -> PLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY
         val = parsed.path.split("/")[-1]
         val = val.removeprefix("VL")
         result["playlist_id"] = val
 
-    # only few videos in season based playlist have weird url,
-    # those videos contain 'path=/watch_videos', unique from all
-    elif parsed.path.startswith("/watch_videos"):
-        # query='video_ids=yRmOWcWdQAo%2ClsbcN9-jU1Y%2ChRSGxw2AQnk%2C1BVJzaXv3rk%2CQ-nWA0WeF98&type=0&title=Roman+History+%E2%80%A2+Top+episodes+for+you'
-        # -> yRmOWcWdQAo
-        val = parsed.query.split("%", 1)[0]
-        val = val.removeprefix("video_ids=")
-        result["video_id"] = val
-
     # regular playlist url, path='/playlist'
-    elif parsed.path.startswith("/playlist"):
+    elif parsed.path == "/playlist":
         # query='list=PLMlRYqqqM5rrjeaJuVaC6MWN7e7fSXGJt' -> PLMlRYqqqM5rrjeaJuVaC6MWN7e7fSXGJt
         val = parsed.query.removeprefix("list=")
 
         # mix playlists are infinite and unviewable on youtube
         # dont support download for them
         # their ids start with RD
-        if val.startswith("RD"):
-            print(parsed)
+        if val.startswith("RD") or val.startswith("TLGG"):
             print("mix playlists are infinite and cannot be downloaded")
             return result
 
         result["playlist_id"] = val
-        print(val)
 
-    # video, video in playlist 'path = /watch'
-    else:
+    # only few videos in season based playlist have weird url,
+    # they contain 'path=/watch_videos', unique from all
+    elif parsed.path == "/watch_videos":
+        # query='video_ids=yRmOWcWdQAo%2ClsbcN9-jU1Y%2ChRSGxw2AQnk%2C1BVJzaXv3rk%2CQ-nWA0WeF98&type=0&title=Roman+History+%E2%80%A2+Top+episodes+for+you'
+        # -> yRmOWcWdQAo
+        val = parsed.query.split("%", 1)[0]
+        val = val.removeprefix("video_ids=")
+        result["video_id"] = val
+
+    # video and video in playlist, 'path = /watch'
+    elif parsed.path == "/watch":
         # query='v=kPkT0jMjEu8&list=RDATmba11fjz9y3mcE' -> RDATmba11fjz9y3mcE
 
         val = parsed.query
@@ -88,6 +87,9 @@ def extract_youtube_video_and_playlist_id(
         val = val.removeprefix("v=")
 
         result["video_id"] = val
+
+    else:
+        raise YTAugError(f"New unsupported url found: \n{url}")
 
     return result
 

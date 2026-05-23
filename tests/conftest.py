@@ -47,19 +47,19 @@ YT_VIDEO_IN_PLAYLISTS = [
         # technoblade potato war -> potato war 2
         "url": "https://www.youtube.com/watch?v=0PAEqgfAts4&list=PLQSoWXSpjA39U94TANpW67fxfYhm5CFFT&index=2&t=36s",
         "video_id": "0PAEqgfAts4",
-        "playlist_id": "PLQSoWXSpjA39U94TANpW67fxfYhm5CFFT",
+        "playlist_id": None,
     },
     {
         # ArhyBES batmetal in BATMETAL playlist
         "url": "https://www.youtube.com/watch?v=qatmJtIJAPw&list=PLJkYK-Q3rpa-3iebwyvEpkbGJnt8jJ1PU&index=1",
         "video_id": "qatmJtIJAPw",
-        "playlist_id": "PLJkYK-Q3rpa-3iebwyvEpkbGJnt8jJ1PU",
+        "playlist_id": None,
     },
     {
         # falshdeckanimations CS animated series -> CS DE dust2
         "url": "https://www.youtube.com/watch?v=5Cjrp23lBSM&list=PLB27741DDE1240BEB&index=2",
         "video_id": "5Cjrp23lBSM",
-        "playlist_id": "PLB27741DDE1240BEB",
+        "playlist_id": None,
     },
 ]
 
@@ -71,19 +71,19 @@ YT_VIDEO_IN_MIX_PLAYLISTS = [
         # random mix
         "url": "https://www.youtube.com/watch?v=ZjPB3a2t1vk&list=RDZjPB3a2t1vk&start_radio=1",
         "video_id": "ZjPB3a2t1vk",
-        "playlist_id": "RDZjPB3a2t1vk",
+        "playlist_id": None,
     },
     {
         # mix radio
         "url": "https://www.youtube.com/watch?v=Ua4WGK5SGHA&list=RDMM&start_radio=1&rv=ZjPB3a2t1vk",
         "video_id": "Ua4WGK5SGHA",
-        "playlist_id": "RDMM",
+        "playlist_id": None,
     },
     {
         # another mix
         "url": "https://www.youtube.com/watch?v=kPkT0jMjEu8&list=RDkPkT0jMjEu8&start_radio=1&rv=Ua4WGK5SGHA",
         "video_id": "kPkT0jMjEu8",
-        "playlist_id": "RDkPkT0jMjEu8",
+        "playlist_id": None,
     },
 ]
 
@@ -119,7 +119,7 @@ YT_VIDEO_IN_SEASON_PLAYLISTS = [
         # oversiplified punic war 1 part 1, present in all episodes and not in top episodes
         "url": "https://www.youtube.com/watch?v=yRmOWcWdQAo&list=PLQw_XrMliWVa1cUis273NsyXIvH5DW6o2&t=16s",
         "video_id": "yRmOWcWdQAo",
-        "playlist_id": "PLQw_XrMliWVa1cUis273NsyXIvH5DW6o2",
+        "playlist_id": None,
     },
     {
         # oversiplified punic war 1 part 2 in top episodes
@@ -131,13 +131,13 @@ YT_VIDEO_IN_SEASON_PLAYLISTS = [
         # oversiplified punic war 1 part 2 in all episodes
         "url": "https://www.youtube.com/watch?v=hRSGxw2AQnk&list=PLQw_XrMliWVa1cUis273NsyXIvH5DW6o2&t=29s",
         "video_id": "hRSGxw2AQnk",
-        "playlist_id": "PLQw_XrMliWVa1cUis273NsyXIvH5DW6o2",
+        "playlist_id": None,
     },
     {
         # oversiplified world war 1 part 1, present in all episodes and not in top episodes
         "url": "https://www.youtube.com/watch?v=dHSQAEam2yc&list=PLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY",
         "video_id": "dHSQAEam2yc",
-        "playlist_id": "PLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY",
+        "playlist_id": None,
     },
     {
         # oversiplified world war 1 part 2 in top episodes
@@ -149,7 +149,7 @@ YT_VIDEO_IN_SEASON_PLAYLISTS = [
         # oversiplified world war 1 part 2 in all episodes
         "url": "https://www.youtube.com/watch?v=Mun1dKkc_As&list=PLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY&t=136s",
         "video_id": "Mun1dKkc_As",
-        "playlist_id": "PLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY",
+        "playlist_id": None,
     },
 ]
 
@@ -193,17 +193,17 @@ YTM_VIDEO_IN_PLAYLISTS = [
     {
         "url": "https://music.youtube.com/watch?v=mYBpnPd7g44&list=PLMlRYqqqM5rrjeaJuVaC6MWN7e7fSXGJt",
         "video_id": "mYBpnPd7g44",
-        "playlist_id": "PLMlRYqqqM5rrjeaJuVaC6MWN7e7fSXGJt",
+        "playlist_id": None,
     },
     {
         "url": "https://music.youtube.com/watch?v=Yl7TdNdTmpU&list=PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",
         "video_id": "Yl7TdNdTmpU",
-        "playlist_id": "PLp9koScqE_BHhGcIrUuGmeCPRakLF-eY8",
+        "playlist_id": None,
     },
     {
         "url": "https://music.youtube.com/watch?v=QHRuTYtSbJQ&list=OLAK5uy_nuH6xdQMYiRKprzdS_hud6Y90NYDgcGYA",
         "video_id": "QHRuTYtSbJQ",
-        "playlist_id": "OLAK5uy_nuH6xdQMYiRKprzdS_hud6Y90NYDgcGYA",
+        "playlist_id": None,
     },
 ]
 
@@ -233,25 +233,25 @@ YTM_VIDEO_IN_MIX_PLAYLISTS = [
         # from create a mix
         "url": "https://music.youtube.com/watch?v=kPkT0jMjEu8&list=RDATmba11fjz9y3mcE",
         "video_id": "kPkT0jMjEu8",
-        "playlist_id": "RDATmba11fjz9y3mcE",
+        "playlist_id": None,
     },
     {
         # from suggested mix
         "url": "https://music.youtube.com/watch?v=mewl5TnLRRE&list=RDTMAK5uy_nilrsVWxrKskY0ZUpVZ3zpB0u4LwWTVJ4",
         "video_id": "mewl5TnLRRE",
-        "playlist_id": "RDTMAK5uy_nilrsVWxrKskY0ZUpVZ3zpB0u4LwWTVJ4",
+        "playlist_id": None,
     },
     {
         # another from suggested mix
         "url": "https://music.youtube.com/watch?v=pWO718iy5mY&list=RDTMAK5uy_n_5IN6hzAOwdCnM8D8rzrs3vDl12UcZpA",
         "video_id": "pWO718iy5mY",
-        "playlist_id": "RDTMAK5uy_n_5IN6hzAOwdCnM8D8rzrs3vDl12UcZpA",
+        "playlist_id": None,
     },
     {
         # shared mix ('RD' playlists) convert to 'TLGG' playlist (still a mix)
         "url": "https://music.youtube.com/watch?v=mewl5TnLRRE&list=TLGGZzPOc7XL31kyMzA1MjAyNg",
         "video_id": "mewl5TnLRRE",
-        "playlist_id": "TLGGZzPOc7XL31kyMzA1MjAyNg",
+        "playlist_id": None,
     },
 ]
 
@@ -326,7 +326,7 @@ EDGE_URLS = [
         # public video in valid private playlist, ytdlp no error but no info
         "url": "https://www.youtube.com/watch?v=S5jROs3A6F8&list=PLlAZKtV48pBbC4nlImTJtM7TVGl0aEolC&index=2",
         "video_id": "S5jROs3A6F8",
-        "playlist_id": "PLlAZKtV48pBbC4nlImTJtM7TVGl0aEolC",
+        "playlist_id": None,
     },
     {
         # valid private video, yt_dlp.utils.DownloadError: ERROR: [youtube] HkeLXf7sYGM: Private video. Sign in if you've been granted access to this video. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
@@ -338,6 +338,6 @@ EDGE_URLS = [
         # valid private video in private playlist, ytdlp no error but no info
         "url": "https://www.youtube.com/watch?v=HkeLXf7sYGM&list=PLlAZKtV48pBbC4nlImTJtM7TVGl0aEolC&index=6",
         "video_id": "HkeLXf7sYGM",
-        "playlist_id": "PLlAZKtV48pBbC4nlImTJtM7TVGl0aEolC",
+        "playlist_id": None,
     },
 ]
