@@ -99,17 +99,13 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
     }
 
     try:
-        # for video media_type: video
-        # for playlist _type: playlist
-        # for video in playlist _type: url, id:playlist_id, title:playlist_title, downloads playlist
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # type: ignore
             info = ydl.extract_info(url, download=False)
 
         with open("temp.json", "w") as f:
             json.dump(obj=info, fp=f, indent=4)
 
-    except yt_dlp.utils.DownloadError as e:
+    except yt_dlp.utils.DownloadError as e:  # type: ignore
         # if "Error 400" in str(e):
         #     raise YTAugError("Provided video/playlist URL does not exist on youtube")
         #
@@ -117,11 +113,14 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
         raise Exception("Unexpected error in get_url_info_ytdlp") from e
 
     url_info = {
-        "type": info.get("_type"),
+        "type": None,
         "title": info.get("title"),
         "id": info.get("id"),
     }
-    if (url_info.get("type")) == "playlist":
+    if "media_type" in info:
+        url_info["type"] = "video"
+    elif "_type" in info:
+        url_info["type"] = "playlist"
         url_info["video_count"] = info.get("playlist_count")
 
     return url_info
@@ -149,7 +148,7 @@ def download_url_ytdlp(
         )
 
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # type: ignore
             ydl.download([url])
     except Exception as e:
         raise Exception("Unexpected error in download_url_ytdlp") from e

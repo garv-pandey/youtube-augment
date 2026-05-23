@@ -6,7 +6,7 @@ from ytaug.exceptions import YTAugError
 # TODO: way for user to request for Unsupported urls
 
 
-def is_youtube_domain(url: str | None) -> bool:
+def is_youtube_domain(url: str) -> bool:
     """
     Check if a URL belongs to a YouTube domain.
 
@@ -28,65 +28,57 @@ def is_youtube_domain(url: str | None) -> bool:
     return domain in ("youtube.com", "m.youtube.com", "music.youtube.com", "youtu.be")
 
 
-def extract_youtube_video_or_playlist_id(
-    url: str,
-) -> dict[str, str]:
-    result = {}
-    parsed = urllib.parse.urlparse(url)
+def extract_youtube_video_id(url: str) -> str | None:
     """
-    if video_id is found, result contains it.
-    else if playlist_id is found, result contains it.
-    else empty dict is returned
+    extracts video_id from video and video_in_playlist urls
+    """
 
-    for playlist only urls, extracts playlist_id
-    for video and 'video in playlist' urls, extracts only video_id
+    parsed = urllib.parse.urlparse(url)
+
+    # only few videos in season based playlist have weird url,
+    # they contain 'path=/watch_videos', unique from all
+    if parsed.path == "/watch_videos":
+        # query='video_ids=yRmOWcWdQAo%2ClsbcN9-jU1Y%2ChRSGxw2AQnk%2C1BVJzaXv3rk%2CQ-nWA0WeF98&type=0&title=Roman+History+%E2%80%A2+Top+episodes+for+you'
+        # -> yRmOWcWdQAo
+        val = parsed.query.split("%", 1)[0]
+        val = val.removeprefix("video_ids=")
+        return val
+
+    # video and video in playlist, 'path = /watch'
+    if parsed.path == "/watch":
+        # query='v=kPkT0jMjEu8&list=RDATmba11fjz9y3mcE' -> RDATmba11fjz9y3mcE
+
+        val = parsed.query
+        val = val.split("&", 1)[0]
+        val = val.removeprefix("v=")
+        return val
+
+    return None
+
+
+def extract_youtube_playlist_id(url: str) -> str | None:
     """
+    extracts playlist_id from urls.
+    does not extracts playlist_id from video_in_playlist urls,
+    only pure playlist only urls
+    """
+
+    parsed = urllib.parse.urlparse(url)
 
     # season based playlist urls, 'path=/show'
     if parsed.path.startswith("/show"):
         # path='/show/VLPLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY' -> PLQw_XrMliWVYdCBZ-ZJcv5nvUrjQPmjyY
         val = parsed.path.split("/")[-1]
         val = val.removeprefix("VL")
-        result["playlist_id"] = val
+        return val
 
     # regular playlist url, path='/playlist'
-    elif parsed.path == "/playlist":
+    if parsed.path == "/playlist":
         # query='list=PLMlRYqqqM5rrjeaJuVaC6MWN7e7fSXGJt' -> PLMlRYqqqM5rrjeaJuVaC6MWN7e7fSXGJt
         val = parsed.query.removeprefix("list=")
+        return val
 
-        # mix playlists are infinite and unviewable on youtube
-        # dont support download for them
-        # their ids start with RD
-        if val.startswith("RD") or val.startswith("TLGG"):
-            print("mix playlists are infinite and cannot be downloaded")
-            return result
-
-        result["playlist_id"] = val
-
-    # only few videos in season based playlist have weird url,
-    # they contain 'path=/watch_videos', unique from all
-    elif parsed.path == "/watch_videos":
-        # query='video_ids=yRmOWcWdQAo%2ClsbcN9-jU1Y%2ChRSGxw2AQnk%2C1BVJzaXv3rk%2CQ-nWA0WeF98&type=0&title=Roman+History+%E2%80%A2+Top+episodes+for+you'
-        # -> yRmOWcWdQAo
-        val = parsed.query.split("%", 1)[0]
-        val = val.removeprefix("video_ids=")
-        result["video_id"] = val
-
-    # video and video in playlist, 'path = /watch'
-    elif parsed.path == "/watch":
-        # query='v=kPkT0jMjEu8&list=RDATmba11fjz9y3mcE' -> RDATmba11fjz9y3mcE
-
-        val = parsed.query
-        val = val.split("&", 1)[0]
-        val = val.removeprefix("v=")
-
-        result["video_id"] = val
-
-    # else:
-    #     raise YTAugError(f"Unsupported url found: \n{url}")
-    # raise in main on None values
-
-    return result
+    return None
 
 
 def get_youtube_playlist_url(playlist_id: str) -> str:

@@ -13,6 +13,8 @@ from ytaug.download import (
     download_url_ytdlp,
 )
 from ytaug.youtube import (
+    extract_youtube_playlist_id,
+    extract_youtube_video_id,
     get_youtube_playlist_url,
     get_youtube_video_url,
     is_youtube_domain,
@@ -51,19 +53,31 @@ def download(
         typer.echo("Provided URL is not a valid youtube domain's URL")
         raise typer.Exit(1)
 
-    try:
-        ids = extract_youtube_video_or_playlist_id(url=url)
+    # get the clean download_url
+    video_id = extract_youtube_video_id(url)
+    playlist_id = extract_youtube_playlist_id(url)
 
-        if "video_id" in ids:
-            download_url = get_youtube_video_url(ids["video_id"])
-        elif "playlist_id" in ids:
-            download_url = get_youtube_playlist_url(ids["playlist_id"])
-        else:
+    try:
+        if not video_id and not playlist_id:
             raise YTAugError(f"Unsupported url: {url}")
+
+        # mix playlists are infinite and unviewable on youtube. dont support download for them
+        if not video_id and (
+            playlist_id.startswith("RD") or playlist_id.startswith("TLGG")  # type: ignore
+        ):
+            typer.echo("Cannot download mix playlists as they are infinite.")
+            raise typer.Exit(1)
+
+        download_url = (
+            get_youtube_video_url(video_id)
+            if video_id
+            else get_youtube_playlist_url(playlist_id)  # type: ignore
+        )
 
         # confirm info of video/playlist and download location
         info = get_url_info_ytdlp(
-            url=download_url, js_runtime_config=get_ytdlp_js_runtime_config()
+            url=download_url,  # type:ignore
+            js_runtime_config=get_ytdlp_js_runtime_config(),
         )
 
         if info["type"] == "playlist":
@@ -71,14 +85,18 @@ def download(
             confirm = typer.confirm(
                 f'Download playlist: "{info["title"]}" ({info["video_count"]} tracks) → {dest}'
             )
-        else:
+
+        elif info["type"] == "video":
             confirm = typer.confirm(f'Download video: "{info["title"]}" → {output}')
+
+        else:
+            raise YTAugError("Unexpected 'type' found in url_info.")
+
         if not confirm:
             typer.echo("Download cancelled.")
             raise typer.Exit(0)
 
         # download the files
-
         download_url_ytdlp(
             url=url,
             target_path=output,

@@ -1,91 +1,31 @@
 import pytest
 
 from tests.conftest import (
-    YT_PLAYLISTS,
-    YT_SEASON_PLAYLISTS,
     YT_VIDEOS,
-    YT_VIDEO_IN_MIX_PLAYLISTS,
+    YT_PLAYLISTS,
     YT_VIDEO_IN_PLAYLISTS,
+    YT_VIDEO_IN_MIX_PLAYLISTS,
+    YT_SEASON_PLAYLISTS,
     YT_VIDEO_IN_SEASON_PLAYLISTS,
-    YTM_MIX_PLAYLISTS,
-    YTM_PLAYLISTS,
     YTM_VIDEOS,
-    YTM_VIDEO_IN_MIX_PLAYLISTS,
+    YTM_PLAYLISTS,
     YTM_VIDEO_IN_PLAYLISTS,
+    YTM_MIX_PLAYLISTS,
+    YTM_VIDEO_IN_MIX_PLAYLISTS,
+    EDGE_URLS,
 )
 
 from ytaug.youtube import (
-    is_youtube_url,
-    is_youtube_video,
-    is_youtube_playlist,
-    get_youtube_video_id,
-    get_youtube_playlist_id,
+    is_youtube_domain,
+    extract_youtube_video_or_playlist_id,
     get_youtube_video_url,
+    get_youtube_playlist_url,
     get_youtube_playlist_url,
 )
 
-# --- Composed lists from conftest data ---
-
-_URLS_WITH_V_ID = [
-    e
-    for e in (
-        YT_VIDEOS
-        + YT_VIDEO_IN_PLAYLISTS
-        + YT_VIDEO_IN_MIX_PLAYLISTS
-        + YTM_VIDEOS
-        + YTM_VIDEO_IN_PLAYLISTS
-        + YTM_VIDEO_IN_MIX_PLAYLISTS
-        + YT_VIDEO_IN_SEASON_PLAYLISTS
-    )
-    if "watch_videos" not in e["url"]
-]
-
-_URLS_WITHOUT_V_ID = (
-    YT_PLAYLISTS
-    + YT_SEASON_PLAYLISTS
-    + [e for e in YT_VIDEO_IN_SEASON_PLAYLISTS if "watch_videos" in e["url"]]
-    + YTM_PLAYLISTS
-    + YTM_MIX_PLAYLISTS
-)
-
-_EDGE_NO_ID = [{"url": None}, {"url": ""}]
-
-_PURE_PLAYLISTS = YT_PLAYLISTS + YTM_PLAYLISTS + YTM_MIX_PLAYLISTS
-
-_NOT_PURE_PLAYLISTS = (
-    YT_VIDEOS
-    + YT_VIDEO_IN_PLAYLISTS
-    + YT_VIDEO_IN_MIX_PLAYLISTS
-    + YT_SEASON_PLAYLISTS
-    + YT_VIDEO_IN_SEASON_PLAYLISTS
-    + YTM_VIDEOS
-    + YTM_VIDEO_IN_PLAYLISTS
-    + YTM_VIDEO_IN_MIX_PLAYLISTS
-)
-
-_URLS_WITH_LIST_ID = (
-    YT_PLAYLISTS
-    + YT_VIDEO_IN_PLAYLISTS
-    + YT_VIDEO_IN_MIX_PLAYLISTS
-    + [e for e in YT_VIDEO_IN_SEASON_PLAYLISTS if "watch_videos" not in e["url"]]
-    + YTM_PLAYLISTS
-    + YTM_VIDEO_IN_PLAYLISTS
-    + YTM_MIX_PLAYLISTS
-    + YTM_VIDEO_IN_MIX_PLAYLISTS
-)
-
-_URLS_WITHOUT_LIST_ID = (
-    YT_VIDEOS
-    + YT_SEASON_PLAYLISTS
-    + [e for e in YT_VIDEO_IN_SEASON_PLAYLISTS if "watch_videos" in e["url"]]
-    + YTM_VIDEOS
-)
-
-_EDGE_NO_LIST = [{"url": None}, {"url": ""}]
-
 
 @pytest.mark.unit
-class TestIsYoutubeUrl:
+class TestIsYoutubeDomain:
     @pytest.mark.parametrize(
         "url",
         [
@@ -102,7 +42,7 @@ class TestIsYoutubeUrl:
         ],
     )
     def test_valid_youtube_urls(self, url):
-        assert is_youtube_url(url) is True
+        assert is_youtube_domain(url) is True
 
     @pytest.mark.parametrize(
         "url",
@@ -120,51 +60,46 @@ class TestIsYoutubeUrl:
         ],
     )
     def test_invalid_urls(self, url):
-        assert is_youtube_url(url) is False
+        assert is_youtube_domain(url) is False
+
+    test_urls = []
 
 
 @pytest.mark.unit
-class TestIsYoutubeVideo:
-    @pytest.mark.parametrize("entry", _URLS_WITH_V_ID)
-    def test_valid_youtube_video_urls(self, entry):
-        assert is_youtube_video(entry["url"]) is True
+class TestExtractYoutubeVideoOrPlaylistId:
+    test_url_objs = [
+        *YT_VIDEOS,
+        *YT_PLAYLISTS,
+        *YT_VIDEO_IN_PLAYLISTS,
+        *YT_VIDEO_IN_MIX_PLAYLISTS,
+        *YT_SEASON_PLAYLISTS,
+        *YT_VIDEO_IN_SEASON_PLAYLISTS,
+        *YTM_VIDEOS,
+        *YTM_PLAYLISTS,
+        *YTM_VIDEO_IN_PLAYLISTS,
+        *YTM_MIX_PLAYLISTS,
+        *YTM_VIDEO_IN_MIX_PLAYLISTS,
+        *EDGE_URLS,
+    ]
 
-    @pytest.mark.parametrize("entry", [*_URLS_WITHOUT_V_ID, *_EDGE_NO_ID])
-    def test_invalid_youtube_vidoe_urls(self, entry):
-        assert is_youtube_video(entry["url"]) is False
+    @pytest.mark.parametrize("url_obj", test_url_objs)
+    def test_extract_youtube_video_or_playlist_id(self, url_obj):
+        url = url_obj["url"]
 
+        result = extract_youtube_video_or_playlist_id(url)
 
-@pytest.mark.unit
-class TestIsYoutubePlaylist:
-    @pytest.mark.parametrize("entry", _PURE_PLAYLISTS)
-    def test_valid_playlist_url(self, entry):
-        assert is_youtube_playlist(entry["url"]) is True
+        if url_obj["video_id"] is not None:
+            expected = {"video_id": url_obj["video_id"]}
 
-    @pytest.mark.parametrize("entry", [*_NOT_PURE_PLAYLISTS, *_EDGE_NO_ID])
-    def test_invalid_playlist_url(self, entry):
-        assert is_youtube_playlist(entry["url"]) is False
+        # case: no video_id found
+        elif url_obj["playlist_id"] is not None:
+            expected = {"playlist_id": url_obj["playlist_id"]}
 
+        # case: Blank dictionary when nothing is found
+        else:
+            expected = {}
 
-@pytest.mark.unit
-class TestGetYoutubeVideoId:
-    @pytest.mark.parametrize("entry", _URLS_WITH_V_ID)
-    def test_returns_video_id(self, entry):
-        assert get_youtube_video_id(entry["url"]) == entry["video_id"]
-
-    @pytest.mark.parametrize("entry", [*_URLS_WITHOUT_V_ID, *_EDGE_NO_ID])
-    def test_returns_none_when_no_video_id(self, entry):
-        assert get_youtube_video_id(entry["url"]) is None
-
-
-@pytest.mark.unit
-class TestGetYoutubePlaylistId:
-    @pytest.mark.parametrize("entry", _URLS_WITH_LIST_ID)
-    def test_returns_playlist_id(self, entry):
-        assert get_youtube_playlist_id(entry["url"]) == entry["playlist_id"]
-
-    @pytest.mark.parametrize("entry", [*_URLS_WITHOUT_LIST_ID, *_EDGE_NO_LIST])
-    def test_returns_none_when_no_playlist_id(self, entry):
-        assert get_youtube_playlist_id(entry["url"]) is None
+        assert result == expected
 
 
 @pytest.mark.unit
