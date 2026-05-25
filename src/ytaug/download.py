@@ -3,6 +3,7 @@ import platform
 import yt_dlp
 import json
 from pathlib import Path
+import ytaug
 from ytaug.exceptions import YTAugError
 
 # TODO: turn any valid youtube domain url in to standard video or playlist url
@@ -151,7 +152,7 @@ def download_url_ytdlp(
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # type: ignore
             ydl.download([url])
     except Exception as e:
-        raise Exception("Unexpected error in download_url_ytdlp") from e
+        raise YTAugError("Unexpected error in download_url_ytdlp") from e
 
 
 if __name__ == "__main__":
