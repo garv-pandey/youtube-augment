@@ -3,13 +3,13 @@ from pathlib import Path
 from ytaug.download import (
     download_url_ytdlp,
     has_js_runtime,
-    is_youtube_url,
     get_url_info_ytdlp,
     get_ytdlp_js_runtime_config,
 )
 from ytaug.exceptions import YTAugError
 
 # TODO: rrethink what aspects to unit test for each function
+# TODO: implement tests for custom exceptions in download_url_ytdlp and get_url_info_ytdlp
 
 # TestHasFfmpeg
 # TestGetFfmpegInstallInstructions
@@ -80,45 +80,6 @@ class TestGetYtdlpJsRuntimeConfig:
 
 
 @pytest.mark.unit
-class TestIsYoutubeUrl:
-    @pytest.mark.parametrize(
-        "url",
-        [
-            "https://www.youtube.com/watch?v=abc",
-            "https://youtube.com/watch?v=abc",
-            "https://music.youtube.com/playlist?list=PL_abc",
-            "https://m.youtube.com/watch?v=abc",
-            "https://youtu.be/abc",
-            "http://www.youtube.com/watch?v=abc",
-            "youtube.com/watch?v=abc",
-            "www.youtube.com/watch?v=abc",
-            "YOUTUBE.COM/watch?v=abc",
-            "https://YouTube.com/watch?v=abc",
-        ],
-    )
-    def test_valid_youtube_urls(self, url):
-        assert is_youtube_url(url) is True
-
-    @pytest.mark.parametrize(
-        "url",
-        [
-            "https://vimeo.com/123",
-            "https://example.com",
-            "https://evil.com?domain=youtube.com",
-            "https://youtube.com.evil.com/",
-            "https://youtube.comm/",
-            None,
-            "",
-            "   ",
-            "not-a-url",
-            "youtube",
-        ],
-    )
-    def test_invalid_urls(self, url):
-        assert is_youtube_url(url) is False
-
-
-@pytest.mark.unit
 class TestGetUrlInfoYtdlp:
     """get_url_info_ytdlp() — extracts metadata from URLs via yt-dlp."""
 
@@ -127,7 +88,7 @@ class TestGetUrlInfoYtdlp:
         mock_instance = mock_ydl.return_value.__enter__.return_value
         # __enter__.return_value maps to "with ... as ydl" is actual code
         mock_instance.extract_info.return_value = {
-            "_type": "video",
+            "media_type": "video",
             "title": "Test Video",
             "id": "abc123",
         }

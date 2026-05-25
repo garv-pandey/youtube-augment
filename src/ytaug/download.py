@@ -1,10 +1,12 @@
 import shutil
 import platform
 import yt_dlp
-import urllib
+import json
 from pathlib import Path
+import ytaug
 from ytaug.exceptions import YTAugError
 
+# TODO: turn any valid youtube domain url in to standard video or playlist url
 # TODO: handle playlist does not exist:"https://www.youtube.com/playlist?list=PLwivhteH3vK_S0yV2w3gCh_zM-2S_3N-Z"
 # TODO: handle no internet connection error
 # TODO: handle private video/playlist error
@@ -41,6 +43,19 @@ def has_js_runtime() -> bool:
     return False
 
 
+def get_js_runtime_install_instructions() -> str:
+    os_name = platform.system()
+    instructions = {
+        "Windows": "winget install deno  OR  winget install OpenJS.NodeJS \nor check their website: \nhttps://deno.com OR https://nodejs.org",
+        "Darwin": "brew install deno  OR  brew install node \nor check their website: \nhttps://deno.com OR https://nodejs.org",
+        "Linux": "curl -fsSL https://deno.land/install.sh | sh  OR  See https://nodejs.org/en/download/package-manager \nor check their website: \nhttps://deno.com OR https://nodejs.org",
+    }
+    return instructions.get(
+        os_name,
+        "check their website for download instructions \nhttps://deno.com OR  See https://nodejs.org",
+    )
+
+
 def get_ytdlp_js_runtime_config() -> dict:
     """
     Returns a yt-dlp js_runtimes config dict with all found JS runtimes.
@@ -55,35 +70,6 @@ def get_ytdlp_js_runtime_config() -> dict:
         if path:
             config[runtime] = {"path": path}
     return config
-
-
-def get_js_runtime_install_instructions() -> str:
-    os_name = platform.system()
-    instructions = {
-        "Windows": "winget install deno  OR  winget install OpenJS.NodeJS \nor check their website: \nhttps://deno.com OR https://nodejs.org",
-        "Darwin": "brew install deno  OR  brew install node \nor check their website: \nhttps://deno.com OR https://nodejs.org",
-        "Linux": "curl -fsSL https://deno.land/install.sh | sh  OR  See https://nodejs.org/en/download/package-manager \nor check their website: \nhttps://deno.com OR https://nodejs.org",
-    }
-    return instructions.get(
-        os_name,
-        "check their website for download instructions \nhttps://deno.com OR  See https://nodejs.org",
-    )
-
-
-def is_youtube_url(url: str | None) -> bool:
-    if not url:
-        return False
-
-    try:
-        parsed = urllib.parse.urlparse(url)
-    except Exception:
-        return False
-
-    domain = parsed.netloc or parsed.path.split("/")[0]
-    domain = domain.lower()
-    domain = domain.removeprefix("www.")
-
-    return domain in ("youtube.com", "m.youtube.com", "music.youtube.com", "youtu.be")
 
 
 def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
@@ -114,22 +100,28 @@ def get_url_info_ytdlp(url: str, js_runtime_config: dict) -> dict:
     }
 
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # type: ignore
             info = ydl.extract_info(url, download=False)
 
-    except yt_dlp.utils.DownloadError as e:
-        if "Error 400" in str(e):
-            raise YTAugError("Provided video/playlist URL does not exist on youtube")
+        with open("temp.json", "w") as f:
+            json.dump(obj=info, fp=f, indent=4)
 
+    except yt_dlp.utils.DownloadError as e:  # type: ignore
+        # if "Error 400" in str(e):
+        #     raise YTAugError("Provided video/playlist URL does not exist on youtube")
+        #
         # if its not Error 400:
         raise Exception("Unexpected error in get_url_info_ytdlp") from e
 
     url_info = {
-        "type": info.get("_type"),
+        "type": None,
         "title": info.get("title"),
         "id": info.get("id"),
     }
-    if (url_info.get("type")) == "playlist":
+    if "media_type" in info:
+        url_info["type"] = "video"
+    elif "_type" in info:
+        url_info["type"] = "playlist"
         url_info["video_count"] = info.get("playlist_count")
 
     return url_info
@@ -157,10 +149,10 @@ def download_url_ytdlp(
         )
 
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # type: ignore
             ydl.download([url])
     except Exception as e:
-        raise Exception("Unexpected error in download_url_ytdlp") from e
+        raise YTAugError("Unexpected error in download_url_ytdlp") from e
 
 
 if __name__ == "__main__":
