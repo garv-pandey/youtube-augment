@@ -17,9 +17,8 @@ from tests.conftest import (
 
 from ytaug.youtube import (
     is_youtube_domain,
-    extract_youtube_video_or_playlist_id,
+    extract_youtube_video_and_playlist_id,
     get_youtube_video_url,
-    get_youtube_playlist_url,
     get_youtube_playlist_url,
 )
 
@@ -83,23 +82,12 @@ class TestExtractYoutubeVideoOrPlaylistId:
     ]
 
     @pytest.mark.parametrize("url_obj", test_url_objs)
-    def test_extract_youtube_video_or_playlist_id(self, url_obj):
+    def test_extract_youtube_video_and_playlist_id(self, url_obj):
         url = url_obj["url"]
 
-        result = extract_youtube_video_or_playlist_id(url)
-
-        if url_obj["video_id"] is not None:
-            expected = {"video_id": url_obj["video_id"]}
-
-        # case: no video_id found
-        elif url_obj["playlist_id"] is not None:
-            expected = {"playlist_id": url_obj["playlist_id"]}
-
-        # case: Blank dictionary when nothing is found
-        else:
-            expected = {}
-
-        assert result == expected
+        result = extract_youtube_video_and_playlist_id(url)
+        assert url_obj["video_id"] == result["video_id"]
+        assert url_obj["playlist_id"] == result["playlist_id"]
 
 
 @pytest.mark.unit

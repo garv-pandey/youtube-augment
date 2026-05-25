@@ -57,19 +57,17 @@ def extract_youtube_video_and_playlist_id(url: str) -> dict[str, str | None]:
     elif parsed.path == "/playlist":
         # query='list=PLMlRYqqqM5rrjeaJuVaC6MWN7e7fSXGJt' -> PLMlRYqqqM5rrjeaJuVaC6MWN7e7fSXGJt
         val = parsed.query.removeprefix("list=")
-        result["playlist_id"] = val  # type:ignore
+        if val:
+            result["playlist_id"] = val  # type:ignore
 
     # /watch contain both video_id or (video_id+playlist_id)
     elif parsed.path == "/watch":
         query_dict = urllib.parse.parse_qs(parsed.query)
 
-        result["video_id"] = query_dict["v"][0]
+        if "v" in query_dict:
+            result["video_id"] = query_dict["v"][0]  # type:ignore
         if "list" in query_dict:
-            playlist_id = query_dict["list"][0]
-
-            # filter out mix playlist ids
-            if not playlist_id.startswith("RD") and not playlist_id.startswith("TLGG"):
-                result["playlist_id"] = query_dict["list"][0]
+            result["playlist_id"] = query_dict["list"][0]  # type:ignore
 
     return result  # type:ignore
 

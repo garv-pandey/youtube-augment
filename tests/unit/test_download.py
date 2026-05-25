@@ -88,7 +88,7 @@ class TestGetUrlInfoYtdlp:
         mock_instance = mock_ydl.return_value.__enter__.return_value
         # __enter__.return_value maps to "with ... as ydl" is actual code
         mock_instance.extract_info.return_value = {
-            "_type": "video",
+            "media_type": "video",
             "title": "Test Video",
             "id": "abc123",
         }
